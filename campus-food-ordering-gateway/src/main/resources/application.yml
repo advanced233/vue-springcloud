@@ -1,0 +1,14 @@
+server:
+  port: 8080  # 网关暴露的端口
+
+spring:
+  application:
+    name: campus-food-gateway  # 网关服务名字
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848  # 本地 Nacos 地址(默认端口8848)
+    gateway:
+      discovery:
+        locator:
+          enabled: true  # 自动根据注册中心的服务进行路由
