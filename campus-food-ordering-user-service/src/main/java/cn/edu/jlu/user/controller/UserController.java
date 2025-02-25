@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
+@CrossOrigin(origins = "*") // 允许所有域名跨域访问
 public class UserController {
 
     @Autowired
