@@ -6,7 +6,8 @@ import WelcomePage from '../views/WelcomePage.vue'; // 欢迎页面
 // import UserLogin from '../views/UserLogin.vue';     // 用户登录页面
 import UserRegister from '../views/UserRegister.vue';
 import UserLogin from "../views/UserLogin.vue";
-import UserHomePage from "../views/UserHomePage.vue"; // 用户注册页面
+import UserHomePage from "../views/UserHomePage.vue";
+import UserMerchantDetail from "../views/UserMerchantDetail.vue"; // 用户注册页面
 // import MerchantLogin from '../views/MerchantLogin.vue'; // 商家登录页面
 // import MerchantRegister from '../views/MerchantRegister.vue'; // 商家注册页面
 
@@ -28,8 +29,13 @@ const routes = [
     },
     {
         path: '/user/homepage',
-        name: '/UserHomePage',
+        name: 'UserHomePage',
         component: UserHomePage
+    },
+    {
+        path: '/user/merchantdetail',
+        name: 'UserMerchantDetail',
+        component: UserMerchantDetail
     },
     // {
     //     path: '/merchant/login', // 商家登录路径

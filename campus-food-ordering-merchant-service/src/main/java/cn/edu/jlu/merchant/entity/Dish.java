@@ -1,10 +1,14 @@
 package cn.edu.jlu.merchant.entity;
 
 import java.util.Date;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 @Data
 public class Dish {
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     private Long merchantId;
     private String name;

@@ -42,7 +42,7 @@ export default {
         localStorage.setItem('userId', userId);
         this.message = message;
         // 登录成功后跳转到用户主页
-        this.$router.push('/user/homepage');
+        this.$router.push({ path: '/user/homepage', query: { userId }});
       } catch (error) {
         console.error(error);
         this.message = '登录失败，请重试。';

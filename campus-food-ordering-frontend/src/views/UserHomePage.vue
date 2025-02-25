@@ -7,12 +7,10 @@
             v-for="merchant in merchants"
             :key="merchant.id"
             class="merchant-item"
-            @click="goToMerchant(merchant.id)"
+            @click="goToMerchant(merchant.id.toString())"
         >
           <div class="merchant-card">
-            <!-- 如果有商家 logo，可以在这里展示
-                 例如：<img :src="merchant.logo" alt="商家logo" class="merchant-logo" />
-                 没有时可使用占位图或背景色 -->
+            <!-- 如果有商家 logo，可以在这里展示 -->
             <div class="merchant-logo-placeholder">
               <span>Logo</span>
             </div>
@@ -46,14 +44,19 @@ export default {
     async fetchMerchants() {
       try {
         const response = await listMerchants();
-        this.merchants = response.data; // 后端返回的商家数组
+        // 如果后端返回的 id 仍是数字，可以在此处遍历 merchants 将 id 转为字符串
+        this.merchants = response.data.map(merchant => ({
+          ...merchant,
+          id: merchant.id.toString()
+        }));
       } catch (error) {
         console.error(error);
         this.message = '获取商家列表失败，请重试。';
       }
     },
     goToMerchant(merchantId) {
-      this.$router.push({ path: '/merchantdishes', query: { merchantId } });
+      console.log('商家 ID:', merchantId);
+      this.$router.push({ path: '/user/merchantdetail', query: { merchantId } });
     }
   }
 };
