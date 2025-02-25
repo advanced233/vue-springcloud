@@ -5,29 +5,29 @@
 
       <!-- 菜品卡片区 -->
       <div class="dishes-wrapper">
-        <div
-            class="dish-card"
-            v-for="dish in dishes"
-            :key="dish.id"
-        >
-          <!-- 如果 dish.image 有值，可以使用 <img :src="dish.image" alt="..." class="dish-image" /> -->
+        <div class="dish-card" v-for="dish in dishes" :key="dish.id">
           <div class="dish-image">
-            <!-- 占位区域 -->
+            <!-- 占位区域，可根据需要替换为 <img :src="dish.image" /> -->
           </div>
           <div class="dish-info">
             <h3>{{ dish.name }}</h3>
             <p>{{ dish.description }}</p>
             <p class="price">价格: {{ dish.price }} 元</p>
-            <!-- 加号按钮，点击加入购物车 -->
-            <button @click="addToCart(dish)">+</button>
+            <!-- 加减控制区 -->
+            <div class="cart-controls">
+              <button @click="removeFromCart(dish)">-</button>
+              <span>{{ getQuantity(dish.id) }}</span>
+              <button @click="addToCart(dish)">+</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- 购物车概要，显示总价、跳转到结算页面 -->
+      <!-- 购物车概要，显示总价、结算按钮和查看购物车按钮 -->
       <div class="cart-summary">
         <p>总价: {{ totalPrice }} 元</p>
-        <button @click="goToCheckout">购物车</button>
+        <button @click="goToCheckout">结算</button>
+        <button @click="viewCart">查看购物车</button>
       </div>
 
       <!-- 错误或提示信息 -->
@@ -37,67 +37,92 @@
 </template>
 
 <script>
-import { getDishesByMerchantId } from '../api/merchant'; // 假设此API已实现
+import { getDishesByMerchantId } from '../api/merchant';
 
 export default {
   data() {
     return {
-      dishes: [],    // 存放该商家的所有菜品
-      cart: [],      // 购物车（简单示例：数组形式，每项包含 { dish, quantity }）
-      message: ''    // 提示消息
+      dishes: [],    // 商家的所有菜品
+      cart: [],      // 购物车：数组中每项包含 { dish, quantity }
+      message: ''    // 提示信息
     };
   },
   computed: {
-    // 计算购物车总价
+    // 计算购物车总价（保留两位小数）
     totalPrice() {
-      // 以单价 × 数量累加
+
       const sum = this.cart.reduce((acc, item) => {
         return acc + (item.dish.price * item.quantity);
       }, 0);
-      // toFixed(2) 保留两位小数
       return sum.toFixed(2);
     }
   },
   created() {
-    // 从URL获取 merchantId
+    // 从 URL 中获取 merchantId
     const merchantId = this.$route.query.merchantId;
     if (!merchantId) {
       this.message = '无效的商家ID';
       return;
     }
-    // 拉取商家菜品
     this.fetchDishes(merchantId);
+
+    // 如果 localStorage 中已有购物车数据，则加载它
+    const storedCart = localStorage.getItem('cart');
+    if (storedCart) {
+      this.cart = JSON.parse(storedCart);
+    }
   },
   methods: {
-    // 调用后端接口，获取菜品列表
+    // 调用后端接口获取菜品列表
     async fetchDishes(merchantId) {
       try {
         const response = await getDishesByMerchantId(merchantId);
-        // 假设后端返回的数据格式是一个菜品数组
         this.dishes = response.data;
       } catch (error) {
         console.error(error);
         this.message = '获取菜品列表失败，请重试。';
       }
     },
-    // 将选中的菜品加入购物车
+    // 加入购物车：若存在则数量+1，否则添加新项，同时更新 localStorage
     addToCart(dish) {
-      // 判断购物车中是否已有该菜品
-      const existingItem = this.cart.find(item => item.dish.id === dish.id);
+      const existingItem = this.cart.find(item => item.dish.id.toString() === dish.id.toString());
       if (existingItem) {
-        // 已存在则数量 +1
         existingItem.quantity++;
       } else {
-        // 不存在则push新对象
         this.cart.push({ dish, quantity: 1 });
       }
+      localStorage.setItem('cart', JSON.stringify(this.cart));
     },
-    // 跳转到结算页面（此处只做占位，后续再实现）
+    // 从购物车中减少菜品数量，数量为0时移除该项，同时更新 localStorage
+    removeFromCart(dish) {
+      const existingItem = this.cart.find(item => item.dish.id.toString() === dish.id.toString());
+      if (existingItem) {
+        existingItem.quantity--;
+        if (existingItem.quantity <= 0) {
+          this.cart = this.cart.filter(item => item.dish.id.toString() !== dish.id.toString());
+        }
+      }
+      localStorage.setItem('cart', JSON.stringify(this.cart));
+    },
+    // 返回购物车中某个菜品的数量，若不存在返回 0
+    getQuantity(dishId) {
+      const item = this.cart.find(item => item.dish.id.toString() === dishId.toString());
+      return item ? item.quantity : 0;
+    },
+    // 跳转到结算页面，同时传递 merchantId
     goToCheckout() {
-      // 这里可以跳转到一个结算页面，比如 '/user/checkout'
-      // 目前仅做示例，可自行完善
-      console.log('TODO: 跳转到结算页面');
-      // this.$router.push({ path: '/user/checkout' });
+      this.$router.push({ path: '/user/checkout', query: { merchantId: this.$route.query.merchantId } });
+    },
+    // 查看购物车内容：弹出一个对话框显示已加入的菜品及数量
+    viewCart() {
+      if (this.cart.length === 0) {
+        alert('购物车为空');
+      } else {
+        const details = this.cart
+            .map(item => `${item.dish.name} x ${item.quantity}`)
+            .join('\n');
+        alert('购物车内容：\n' + details);
+      }
     }
   }
 };
@@ -129,7 +154,7 @@ h2 {
   color: #333;
 }
 
-/* 卡片布局 */
+/* 菜品卡片区 */
 .dishes-wrapper {
   display: flex;
   flex-wrap: wrap;
@@ -137,7 +162,7 @@ h2 {
   justify-content: center;
 }
 
-/* 单个卡片 */
+/* 单个菜品卡片 */
 .dish-card {
   width: 220px;
   border: 1px solid #ddd;
@@ -152,7 +177,7 @@ h2 {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* 这里可以放置菜品图片或占位 */
+/* 菜品图片占位 */
 .dish-image {
   width: 100%;
   height: 120px;
@@ -182,21 +207,33 @@ h2 {
   font-weight: bold;
 }
 
-/* 加入购物车按钮 */
-.dish-info button {
+/* 加减控制区 */
+.cart-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-top: 10px;
+}
+
+.cart-controls button {
   background-color: #007bff;
   color: #fff;
   border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
+  border-radius: 4px;
+  width: 30px;
+  height: 30px;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s;
+  margin: 0 5px;
+  transition: background-color 0.3s;
 }
 
-.dish-info button:hover {
+.cart-controls button:hover {
   background-color: #0056b3;
-  transform: scale(1.02);
+}
+
+.cart-controls span {
+  min-width: 20px;
+  text-align: center;
 }
 
 /* 购物车摘要 */
@@ -205,7 +242,7 @@ h2 {
 }
 
 .cart-summary button {
-  margin-left: 10px;
+  margin: 0 5px;
   background-color: #28a745;
   color: #fff;
   border: none;
