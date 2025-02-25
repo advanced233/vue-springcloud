@@ -1,0 +1,14 @@
+server:
+  port: 8102
+
+spring:
+  application:
+    name: campus-food-merchant-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/campus_food?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
