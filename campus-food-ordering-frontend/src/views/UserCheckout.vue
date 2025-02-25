@@ -56,19 +56,23 @@ export default {
       }
       // 构造订单对象，注意订单项不能为空
       const order = {
-        userId: userId,         // 此处传递字符串，后端如果有精度问题请确保使用字符串
-        merchantId: merchantId, // 商家ID建议同样以字符串方式传递
-        totalAmount: Number(this.totalPrice), // 总金额，转换为数字类型
-        status: 0,              // 初始状态：0 待处理
+        userId: userId,         // 用户 ID
+        merchantId: merchantId, // 商家 ID
+        // totalAmount: Number(this.totalPrice), // 总金额
+        // status: 0,              // 订单状态：0 待处理
         orderItems: this.orderItems
       };
+
+      // 以 JSON 格式打印订单信息
+      console.log("订单请求数据:", JSON.stringify(order, null, 2));
+
       try {
         const response = await createOrder(order);
         this.message = response.data; // 后端返回 "订单创建成功" 或其他提示
         // 支付成功后，可清空购物车数据
         localStorage.removeItem('cart');
       } catch (error) {
-        console.error(error);
+        console.error("订单创建失败:", error);
         this.message = '下单失败，请重试';
       }
     }

@@ -39,6 +39,7 @@ export default {
         // 假设后端返回的数据格式为 { userId: 123, message: '登录成功，欢迎 xxx' }
         const { userId, message } = response.data;
         // 同时存入 localStorage，以便页面刷新后依然保存登录状态
+        console.log(userId);
         localStorage.setItem('userId', userId);
         this.message = message;
         // 登录成功后跳转到用户主页
