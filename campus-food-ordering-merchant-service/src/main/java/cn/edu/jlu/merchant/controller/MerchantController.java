@@ -9,6 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/merchant")
+@CrossOrigin(origins = "*") // 允许所有域名跨域访问
 public class MerchantController {
 
     @Autowired

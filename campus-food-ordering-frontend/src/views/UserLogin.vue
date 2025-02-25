@@ -4,21 +4,17 @@
       <!-- 返回按钮 -->
       <button class="back-button" @click="goBack">← 返回</button>
 
-      <h2>用户注册</h2>
-      <form @submit.prevent="handleRegister">
+      <h2>用户登录</h2>
+      <form @submit.prevent="handleLogin">
         <div class="form-group">
           <label>用户名:</label>
-          <input v-model="user.username" type="text" placeholder="请输入用户名" required />
+          <input v-model="username" type="text" placeholder="请输入用户名" required />
         </div>
         <div class="form-group">
           <label>密码:</label>
-          <input v-model="user.password" type="password" placeholder="请输入密码" required />
+          <input v-model="password" type="password" placeholder="请输入密码" required />
         </div>
-        <div class="form-group">
-          <label>手机号码:</label>
-          <input v-model="user.phone" type="tel" placeholder="请输入手机号码" />
-        </div>
-        <button type="submit">注册</button>
+        <button type="submit">登录</button>
       </form>
       <p v-if="message" class="message">{{ message }}</p>
     </div>
@@ -26,27 +22,30 @@
 </template>
 
 <script>
-import { registerUser } from '../api/user';
+import { loginUser } from '../api/user';
 
 export default {
   data() {
     return {
-      user: {
-        username: '',
-        password: '',
-        phone: ''
-      },
+      username: '',
+      password: '',
       message: ''
     };
   },
   methods: {
-    async handleRegister() {
+    async handleLogin() {
       try {
-        const response = await registerUser(this.user);
-        this.message = response.data;
+        const response = await loginUser(this.username, this.password);
+        // 假设后端返回的数据格式为 { userId: 123, message: '登录成功，欢迎 xxx' }
+        const { userId, message } = response.data;
+        // 同时存入 localStorage，以便页面刷新后依然保存登录状态
+        localStorage.setItem('userId', userId);
+        this.message = message;
+        // 登录成功后跳转到用户主页
+        this.$router.push('/user/homepage');
       } catch (error) {
         console.error(error);
-        this.message = '注册失败，请重试。';
+        this.message = '登录失败，请重试。';
       }
     },
     goBack() {
@@ -162,4 +161,3 @@ button[type="submit"]:active {
   color: #ff4d4f;
 }
 </style>
-
