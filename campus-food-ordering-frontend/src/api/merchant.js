@@ -25,25 +25,25 @@ export function registerMerchant(merchant) {
 
 // 商家登录
 export function loginMerchant(account, password) {
-    return axios.post('${BASE_URL}/merchant/login', null, { params: { account, password } });
+    return axios.post(`${BASE_URL}/merchant/login`, null, { params: { account, password } });
 }
 
 // 更新店铺信息
 export function updateMerchant(merchant) {
-    return axios.put('${BASE_URL}/merchant/update', merchant);
+    return axios.put(`${BASE_URL}/merchant/update`, merchant);
 }
 
 // 添加菜品
 export function addDish(dish) {
-    return axios.post('${BASE_URL}/merchant/dish/add', dish);
+    return axios.post(`${BASE_URL}/merchant/dish/add`, dish);
 }
 
 // 修改菜品信息
 export function updateDish(dish) {
-    return axios.put('${BASE_URL}/merchant/dish/update', dish);
+    return axios.put(`${BASE_URL}/merchant/dish/update`, dish);
 }
 
 // 修改菜品状态（上架/下架）
 export function changeDishStatus(dishId, status) {
-    return axios.put('${BASE_URL}/merchant/dish/status', null, { params: { dishId, status } });
+    return axios.put(`${BASE_URL}/merchant/dish/status`, null, { params: { dishId, status } });
 }
