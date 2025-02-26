@@ -111,4 +111,10 @@ public class MerchantService {
         int result = dishMapper.deleteById(dishId);
         return result > 0 ? "菜品删除成功" : "菜品删除失败";
     }
+
+    // 根据菜品ID查询菜品信息
+    public Dish getDishById(Long dishId) {
+        return dishMapper.selectById(dishId);
+    }
+
 }

@@ -2,6 +2,10 @@
   <div class="container">
     <div class="page-wrapper">
       <h2>商家列表</h2>
+
+      <!-- 新增订单列表按钮 -->
+      <button class="order-list-button" @click="goToOrderList">订单列表</button>
+
       <ul class="merchant-list">
         <li
             v-for="merchant in merchants"
@@ -54,6 +58,9 @@ export default {
     },
     goToMerchant(merchantId) {
       this.$router.push({ path: '/user/merchantdetail', query: { merchantId } });
+    },
+    goToOrderList() {
+      this.$router.push({ path: '/user/orderlist' });
     }
   }
 };
@@ -81,6 +88,23 @@ export default {
 h2 {
   margin-bottom: 20px;
   color: #333;
+}
+
+/* 新增按钮样式 */
+.order-list-button {
+  padding: 8px 16px;
+  margin-bottom: 20px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.order-list-button:hover {
+  background-color: #0056b3;
 }
 
 /* 列表布局：flex 布局 + 卡片 */

@@ -80,4 +80,14 @@ public class MerchantController {
     public String deleteDish(@RequestParam Long dishId) {
         return merchantService.deleteDish(dishId);
     }
+
+    @GetMapping("/dish/{dishId}")
+    public String getDishName(@PathVariable Long dishId) {
+        Dish dish = merchantService.getDishById(dishId);
+        if (dish == null) {
+            return "菜品不存在";
+        }
+        return dish.getName();
+    }
+
 }

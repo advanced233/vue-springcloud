@@ -52,3 +52,10 @@ export function changeDishStatus(dishId, status) {
 export function deleteDish(dishId) {
     return axios.delete(`${BASE_URL}/merchant/dish/delete`, { params: { dishId } });
 }
+
+// 根据菜品id查询菜品
+export function getDishById(dishId) {
+    return axios.get(`${BASE_URL}/merchant/dish/${dishId}`);
+}
+
+

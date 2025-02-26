@@ -11,7 +11,8 @@ import UserMerchantDetail from "../views/UserMerchantDetail.vue";
 import UserCheckout from "../views/UserCheckout.vue"; // 用户注册页面
 import MerchantLogin from '../views/MerchantLogin.vue'; // 商家登录页面
 import MerchantRegister from '../views/MerchantRegister.vue';
-import MerchantHomePage from "../views/MerchantHomePage.vue"; // 商家注册页面
+import MerchantHomePage from "../views/MerchantHomePage.vue";
+import UserOrderList from "../views/UserOrderList.vue"; // 商家注册页面
 
 const routes = [
     {
@@ -43,6 +44,11 @@ const routes = [
         path: '/user/checkout',
         name: 'UserCheckout',
         component: UserCheckout
+    },
+    {
+        path: '/user/orderlist',
+        name: 'UserOrderList',
+        component: UserOrderList
     },
     {
         path: '/merchant/login', // 商家登录路径
