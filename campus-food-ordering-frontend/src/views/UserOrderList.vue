@@ -2,9 +2,22 @@
   <div class="container">
     <div class="page-wrapper">
       <h2>我的订单列表</h2>
+
+      <!-- 筛选订单状态的下拉框 -->
+      <div class="filter-container">
+        <label for="order-filter">筛选订单:</label>
+        <select id="order-filter" v-model="selectedStatus">
+          <option value="">全部订单</option>
+          <option value="0">待处理</option>
+          <option value="1">已接单</option>
+          <option value="2">已完成</option>
+          <option value="3">已取消</option>
+        </select>
+      </div>
+
       <ul class="order-list">
         <li
-            v-for="order in orders"
+            v-for="order in filteredOrders"
             :key="order.id"
             class="order-item"
             @click="showOrderDetails(order)"
@@ -44,10 +57,7 @@
 
 <script>
 // 注意：这里需要用到订单和商家/菜品相关的 API
-// 假设在 api/order.js 中新增了 getOrderItems(orderId) 接口
-import { getOrdersByUser,
-  getOrderItems
-} from '../api/order';
+import { getOrdersByUser, getOrderItems } from '../api/order';
 import { getMerchant, getDishById } from '../api/merchant';
 
 export default {
@@ -56,7 +66,8 @@ export default {
       orders: [],           // 用户的所有订单，附加上订单项及商家名称
       message: '',          // 错误或提示信息
       selectedOrder: null,  // 当前选中查看详情的订单
-      userId: localStorage.getItem('userId') // 登录后存入 localStorage 的 userId
+      userId: localStorage.getItem('userId'), // 登录后存入 localStorage 的 userId
+      selectedStatus: ""    // 筛选条件，空字符串表示显示所有状态
     };
   },
   created() {
@@ -64,6 +75,15 @@ export default {
       this.fetchOrders();
     } else {
       this.message = '用户未登录';
+    }
+  },
+  computed: {
+    // 根据 selectedStatus 过滤订单
+    filteredOrders() {
+      if (this.selectedStatus === "") {
+        return this.orders;
+      }
+      return this.orders.filter(order => order.status === Number(this.selectedStatus));
     }
   },
   methods: {
@@ -94,7 +114,6 @@ export default {
             for (let item of order.orderItems) {
               try {
                 const dishRes = await getDishById(item.dishId);
-                console.log(dishRes)
                 item.dishName = dishRes.data;
               } catch (err) {
                 console.error('获取菜品信息失败：', err);
@@ -164,6 +183,21 @@ export default {
 h2 {
   margin-bottom: 20px;
   color: #333;
+}
+
+/* 筛选区域 */
+.filter-container {
+  margin-bottom: 20px;
+  text-align: left;
+}
+.filter-container label {
+  margin-right: 10px;
+  font-size: 16px;
+  color: #333;
+}
+.filter-container select {
+  padding: 6px 8px;
+  font-size: 16px;
 }
 
 /* 订单列表样式 */
