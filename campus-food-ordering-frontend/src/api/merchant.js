@@ -20,7 +20,7 @@ export function getDishesByMerchantId(merchantId) {
 
 // 商家注册
 export function registerMerchant(merchant) {
-    return axios.post('${BASE_URL}/merchant/register', merchant);
+    return axios.post(`${BASE_URL}/merchant/register`, merchant);
 }
 
 // 商家登录
