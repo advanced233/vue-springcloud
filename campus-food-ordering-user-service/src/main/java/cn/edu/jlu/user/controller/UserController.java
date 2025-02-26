@@ -1,5 +1,6 @@
 package cn.edu.jlu.user.controller;
 
+import cn.edu.jlu.user.entity.LoginResponse;
 import cn.edu.jlu.user.entity.User;
 import cn.edu.jlu.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,8 @@ public class UserController {
      * 参数：username、password（作为请求参数）
      */
     @PostMapping("/login")
-    public String login(@RequestParam String username, @RequestParam String password) {
+    public LoginResponse login(@RequestParam String username, @RequestParam String password) {
+        // 现在返回的是一个 LoginResponse
         return userService.login(username, password);
     }
 }

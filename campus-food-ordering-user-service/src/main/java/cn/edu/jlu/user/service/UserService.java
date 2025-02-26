@@ -1,5 +1,6 @@
 package cn.edu.jlu.user.service;
 
+import cn.edu.jlu.user.entity.LoginResponse;
 import cn.edu.jlu.user.entity.User;
 import cn.edu.jlu.user.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,20 +34,38 @@ public class UserService {
 
     /**
      * 用户登录
+     * 先查用户名，如果不存在就提示 "用户不存在"；
+     * 如果密码不匹配就提示 "密码错误"；
+     * 否则返回用户ID和 "登录成功，欢迎 xxx"
      */
-    public String login(String username, String password) {
+    public LoginResponse login(String username, String password) {
+        // 查询用户是否存在
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", username);
         User user = userMapper.selectOne(queryWrapper);
+
+        // 创建一个响应对象
+        LoginResponse resp = new LoginResponse();
+
         if (user == null) {
-            return "用户不存在";
+            // 用户不存在
+            resp.setUserId(null);
+            resp.setMessage("用户不存在");
+            return resp;
         }
-        // 对比密码（使用MD5加密对比）
+
+        // 先对比密码（MD5加密）
         String md5Password = DigestUtils.md5DigestAsHex(password.getBytes());
         if (!md5Password.equals(user.getPassword())) {
-            return "密码错误";
+            // 密码错误
+            resp.setUserId(null);
+            resp.setMessage("密码错误");
+            return resp;
         }
-        // MVP阶段直接返回一个登录成功的提示，后续可使用JWT或Session返回Token
-        return "登录成功，欢迎 " + username;
+
+        // 否则登录成功
+        resp.setUserId(user.getId());
+        resp.setMessage("登录成功，欢迎 " + username);
+        return resp;
     }
 }
