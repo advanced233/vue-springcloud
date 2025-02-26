@@ -105,4 +105,10 @@ public class MerchantService {
         int result = dishMapper.updateById(dish);
         return result > 0 ? "菜品状态更新成功" : "菜品状态更新失败";
     }
+
+    // 删除菜品
+    public String deleteDish(Long dishId) {
+        int result = dishMapper.deleteById(dishId);
+        return result > 0 ? "菜品删除成功" : "菜品删除失败";
+    }
 }

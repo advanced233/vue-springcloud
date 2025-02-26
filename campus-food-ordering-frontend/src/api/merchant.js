@@ -47,3 +47,8 @@ export function updateDish(dish) {
 export function changeDishStatus(dishId, status) {
     return axios.put(`${BASE_URL}/merchant/dish/status`, null, { params: { dishId, status } });
 }
+
+// 删除菜品接口
+export function deleteDish(dishId) {
+    return axios.delete(`${BASE_URL}/merchant/dish/delete`, { params: { dishId } });
+}

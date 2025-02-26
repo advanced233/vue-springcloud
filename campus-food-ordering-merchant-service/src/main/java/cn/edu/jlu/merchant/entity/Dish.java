@@ -10,6 +10,7 @@ import lombok.Data;
 public class Dish {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long merchantId;
     private String name;
     private Double price;

@@ -106,7 +106,7 @@ import {
   changeDishStatus,
   updateDish,
   addDish,
-  //deleteDish  // 注意：deleteDish 需在 API 层中实现
+  deleteDish
 } from '../api/merchant';
 
 export default {
@@ -173,12 +173,14 @@ export default {
     // 保存编辑后的菜品信息
     async saveEditDish() {
       try {
+        console.log("订单请求数据:", JSON.stringify(this.currentDish, null, 2));
         const response = await updateDish(this.currentDish);
+        console.log("订单请求数据:", JSON.stringify(this.currentDish, null, 2));
         if (response.data.includes('成功')) {
           // 更新本地菜品列表
           const index = this.dishes.findIndex(d => d.id === this.currentDish.id);
           if (index !== -1) {
-            this.$set(this.dishes, index, { ...this.currentDish });
+            this.dishes[index] = { ...this.currentDish };
           }
           this.message = '菜品更新成功';
           this.showEditModal = false;

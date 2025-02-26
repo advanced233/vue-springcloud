@@ -74,4 +74,10 @@ public class MerchantController {
     public String changeDishStatus(@RequestParam Long dishId, @RequestParam Integer status) {
         return merchantService.changeDishStatus(dishId, status);
     }
+
+    // 删除菜品接口
+    @DeleteMapping("/dish/delete")
+    public String deleteDish(@RequestParam Long dishId) {
+        return merchantService.deleteDish(dishId);
+    }
 }
