@@ -1,6 +1,7 @@
 package cn.edu.jlu.order.controller;
 
 import cn.edu.jlu.order.entity.Order;
+import cn.edu.jlu.order.entity.OrderItem;
 import cn.edu.jlu.order.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -47,5 +48,10 @@ public class OrderController {
     @GetMapping("/merchant/{merchantId}")
     public List<Order> getOrdersByMerchant(@PathVariable("merchantId") Long merchantId) {
         return orderService.getOrdersByMerchantId(merchantId);
+    }
+
+    @GetMapping("/{orderId}/items")
+    public List<OrderItem> getOrderItems(@PathVariable("orderId") Long orderId) {
+        return orderService.getOrderItemsByOrderId(orderId);
     }
 }

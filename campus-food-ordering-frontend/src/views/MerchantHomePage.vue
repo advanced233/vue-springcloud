@@ -9,6 +9,8 @@
         <button @click="toggleDeleteMode">
           {{ deleteMode ? '退出删除模式' : '删除菜品' }}
         </button>
+        <!-- 新增订单管理按钮 -->
+        <button @click="goToOrderManage">订单管理</button>
       </div>
 
       <!-- 菜品卡片区域 -->
@@ -249,6 +251,10 @@ export default {
           this.message = '删除失败，请重试。';
         }
       }
+    },
+    // 新增的跳转到订单管理页面的方法
+    goToOrderManage() {
+      this.$router.push('/merchant/ordermanage');
     }
   }
 };

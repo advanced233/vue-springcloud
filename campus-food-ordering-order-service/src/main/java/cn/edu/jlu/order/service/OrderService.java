@@ -77,4 +77,8 @@ public class OrderService {
         query.eq("merchant_id", merchantId);
         return orderMapper.selectList(query);
     }
+
+    public List<OrderItem> getOrderItemsByOrderId(Long orderId) {
+        return orderItemMapper.selectByOrderId(orderId);
+    }
 }
