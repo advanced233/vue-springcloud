@@ -10,7 +10,8 @@ import UserHomePage from "../views/UserHomePage.vue";
 import UserMerchantDetail from "../views/UserMerchantDetail.vue";
 import UserCheckout from "../views/UserCheckout.vue"; // 用户注册页面
 import MerchantLogin from '../views/MerchantLogin.vue'; // 商家登录页面
-import MerchantRegister from '../views/MerchantRegister.vue'; // 商家注册页面
+import MerchantRegister from '../views/MerchantRegister.vue';
+import MerchantHomePage from "../views/MerchantHomePage.vue"; // 商家注册页面
 
 const routes = [
     {
@@ -52,6 +53,11 @@ const routes = [
         path: '/merchant/register', // 商家注册路径
         name: 'MerchantRegister',
         component: MerchantRegister,
+    },
+    {
+        path: '/merchant/homepage',
+        name: 'MerchantHomePage',
+        component: MerchantHomePage
     },
 ];
 

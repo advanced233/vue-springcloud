@@ -2,6 +2,7 @@ package cn.edu.jlu.merchant.service;
 
 import cn.edu.jlu.merchant.entity.Merchant;
 import cn.edu.jlu.merchant.entity.Dish;
+import cn.edu.jlu.merchant.entity.MerchantLoginResponse;
 import cn.edu.jlu.merchant.mapper.MerchantMapper;
 import cn.edu.jlu.merchant.mapper.DishMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,18 +51,30 @@ public class MerchantService {
     }
 
     // 商家登录：根据账号查询并校验密码
-    public String loginMerchant(String account, String password) {
+    public MerchantLoginResponse loginMerchant(String account, String password) {
         QueryWrapper<Merchant> query = new QueryWrapper<>();
         query.eq("account", account);
         Merchant merchant = merchantMapper.selectOne(query);
+
+        MerchantLoginResponse resp = new MerchantLoginResponse();
+
         if (merchant == null) {
-            return "商家不存在";
+            resp.setMerchantId(null);
+            resp.setMessage("商家不存在");
+            return resp;
         }
+
         String md5Password = DigestUtils.md5DigestAsHex(password.getBytes());
         if (!md5Password.equals(merchant.getPassword())) {
-            return "密码错误";
+            resp.setMerchantId(null);
+            resp.setMessage("密码错误");
+            return resp;
         }
-        return "登录成功，欢迎 " + merchant.getName();
+
+        // 登录成功
+        resp.setMerchantId(merchant.getId());
+        resp.setMessage("登录成功，欢迎 " + merchant.getName());
+        return resp;
     }
 
     // 更新店铺信息（例如名称、logo 等），merchant 对象必须包含 id

@@ -2,6 +2,7 @@ package cn.edu.jlu.merchant.controller;
 
 import cn.edu.jlu.merchant.entity.Merchant;
 import cn.edu.jlu.merchant.entity.Dish;
+import cn.edu.jlu.merchant.entity.MerchantLoginResponse;
 import cn.edu.jlu.merchant.service.MerchantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -42,8 +43,10 @@ public class MerchantController {
     }
 
     // 商家登录接口
+    // 商家登录接口
     @PostMapping("/login")
-    public String loginMerchant(@RequestParam String account, @RequestParam String password) {
+    public MerchantLoginResponse loginMerchant(@RequestParam String account, @RequestParam String password) {
+        // 调用 service 获取返回对象
         return merchantService.loginMerchant(account, password);
     }
 
