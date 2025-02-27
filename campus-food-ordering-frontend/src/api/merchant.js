@@ -58,4 +58,19 @@ export function getDishById(dishId) {
     return axios.get(`${BASE_URL}/merchant/dish/${dishId}`);
 }
 
+/**
+ * 获取所有商家信息（仅管理员可用）
+ */
+export function getAllMerchants() {
+    return axios.get(`${BASE_URL}/merchant/all`);
+}
+
+/**
+ * 更新商家状态（封禁/解禁）
+ * @param {number} merchantId 商家ID
+ * @param {number} status 0 表示封禁，1 表示正常
+ */
+export function updateMerchantStatus(merchantId, status) {
+    return axios.put(`${BASE_URL}/merchant/status`, { merchantId, status });
+}
 

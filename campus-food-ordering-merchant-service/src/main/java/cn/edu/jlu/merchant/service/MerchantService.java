@@ -122,4 +122,15 @@ public class MerchantService {
         return dishMapper.selectById(dishId);
     }
 
+    public String updateMerchantStatus(Long merchantId, Integer status) {
+        // 先判断商家是否存在
+        Merchant merchant = merchantMapper.selectById(merchantId);
+        if (merchant == null) {
+            return "商家不存在";
+        }
+        // 修改状态（0: 封禁，1: 正常）
+        merchant.setStatus(status);
+        int result = merchantMapper.updateById(merchant);
+        return result > 0 ? "状态更新成功" : "状态更新失败";
+    }
 }

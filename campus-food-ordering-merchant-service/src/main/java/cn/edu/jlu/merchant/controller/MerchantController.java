@@ -3,6 +3,7 @@ package cn.edu.jlu.merchant.controller;
 import cn.edu.jlu.merchant.entity.Merchant;
 import cn.edu.jlu.merchant.entity.Dish;
 import cn.edu.jlu.merchant.entity.MerchantLoginResponse;
+import cn.edu.jlu.merchant.entity.MerchantStatusUpdateDTO;
 import cn.edu.jlu.merchant.service.MerchantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -88,6 +89,26 @@ public class MerchantController {
             return "菜品不存在";
         }
         return dish.getName();
+    }
+
+    /**
+     * 获取所有商家信息（仅管理员可用）
+     * URL：GET /merchant/all
+     */
+    @GetMapping("/all")
+    public List<Merchant> getAllMerchants() {
+        return merchantService.listMerchants();
+    }
+
+    /**
+     * 更新商家状态（封禁/解禁），仅管理员可用
+     * URL：PUT /merchant/status
+     * 参数：JSON 格式的 MerchantStatusUpdateDTO 对象
+     */
+    @PutMapping("/status")
+    public String updateMerchantStatus(@RequestBody MerchantStatusUpdateDTO dto) {
+        // TODO: 这里建议添加管理员权限校验
+        return merchantService.updateMerchantStatus(dto.getMerchantId(), dto.getStatus());
     }
 
 }
