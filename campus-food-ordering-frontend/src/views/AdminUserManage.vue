@@ -60,7 +60,7 @@
 </template>
 
 <script>
-//import { getAllUsers, updateUserStatus } from '../api/user'; // 需要你在 user.js 中定义
+import { getAllUsers, updateUserStatus } from '../api/user'; // 需要你在 user.js 中定义
 
 export default {
   name: 'AdminUserManage',

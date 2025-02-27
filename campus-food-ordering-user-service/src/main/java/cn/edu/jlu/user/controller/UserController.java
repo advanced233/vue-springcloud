@@ -1,11 +1,14 @@
 package cn.edu.jlu.user.controller;
 
 import cn.edu.jlu.user.entity.LoginResponse;
+import cn.edu.jlu.user.entity.UpdateUserStatusDTO;
 import cn.edu.jlu.user.entity.User;
 import cn.edu.jlu.user.entity.UserPersonalInfoDTO;
 import cn.edu.jlu.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -53,4 +56,25 @@ public class UserController {
     public String updatePersonalInfo(@RequestBody UserPersonalInfoDTO dto) {
         return userService.updateUserPersonalInfo(dto);
     }
+
+    /**
+     * 获取所有用户信息（仅管理员可用）
+     * URL：GET /user/all
+     */
+    @GetMapping("/all")
+    public List<User> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
+    /**
+     * 更新用户状态（封禁、解禁）
+     * URL：PUT /user/status
+     * 参数：JSON 格式的 UpdateUserStatusDTO 对象（包含 userId 和 status）
+     */
+    @PutMapping("/status")
+    public String updateUserStatus(@RequestBody UpdateUserStatusDTO dto) {
+        // TODO: 实际开发中建议在这里添加管理员权限校验
+        return userService.updateUserStatus(dto.getUserId(), dto.getStatus());
+    }
+
 }

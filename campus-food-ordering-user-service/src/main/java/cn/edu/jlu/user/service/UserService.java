@@ -136,4 +136,21 @@ public class UserService {
         }
         return result > 0 ? "更新成功" : "更新失败";
     }
+
+    public List<User> getAllUsers() {
+        // 查询所有用户，传入 null 表示无查询条件
+        return userMapper.selectList(null);
+    }
+
+    public String updateUserStatus(Long userId, Integer status) {
+        // 先检查用户是否存在
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            return "用户不存在";
+        }
+        // 设置新状态（0:封禁，1:正常）
+        user.setStatus(status);
+        int result = userMapper.updateById(user);
+        return result > 0 ? "更新成功" : "更新失败";
+    }
 }
