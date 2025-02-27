@@ -3,6 +3,11 @@
     <div class="page-wrapper">
       <h2>我的订单管理</h2>
 
+      <!-- 销售额显示 -->
+      <div class="sales-summary">
+        <p>今日销售额: ¥{{ dailySales.toFixed(2) }}</p>
+      </div>
+
       <!-- 筛选区域 -->
       <div class="filter-container">
         <label for="order-filter">筛选订单:</label>
@@ -39,6 +44,9 @@
               </el-descriptions-item>
               <el-descriptions-item label="下单日期">
                 {{ formatDate(order.createTime) }}
+              </el-descriptions-item>
+              <el-descriptions-item label="订单金额">
+                ¥{{ order.totalAmount.toFixed(2) }}
               </el-descriptions-item>
             </el-descriptions>
           </el-card>
@@ -84,6 +92,7 @@
         <div class="update-status" style="margin-top: 15px;">
           <el-form label-position="left" label-width="120px" inline>
             <el-form-item label="更新订单状态">
+              <!-- 使用状态文本而非数字 -->
               <el-select v-model="editedStatus" placeholder="请选择订单状态" style="width: 150px;">
                 <el-option label="待处理" value="0"></el-option>
                 <el-option label="已接单" value="1"></el-option>
@@ -97,6 +106,7 @@
           </el-form>
         </div>
 
+        <!-- 更新状态后刷新页面 -->
         <el-button type="primary" @click="closeModal" style="margin-top: 15px;">关闭</el-button>
       </div>
     </div>
@@ -112,6 +122,7 @@ export default {
   data() {
     return {
       orders: [],           // 当前商家的订单列表（附加了订单项数据）
+      dailySales: 0,        // 今日销售额
       message: '',          // 提示或错误信息
       selectedOrder: null,  // 当前选中查看详情的订单
       editedStatus: null,   // 用于编辑订单状态的变量
@@ -143,8 +154,12 @@ export default {
         let orders = response.data;
         // 按下单日期倒序排列（最新订单在前）
         orders.sort((a, b) => new Date(b.createTime) - new Date(a.createTime));
-        // 补充每个订单的订单项数据及菜品名称
+        // 计算今日销售额并处理订单
+        this.dailySales = 0;
         for (let order of orders) {
+          if (this.isToday(order.createTime) && order.status === 2) {
+            this.dailySales += order.totalAmount;
+          }
           try {
             const itemsRes = await getOrderItems(order.id);
             order.orderItems = itemsRes.data;
@@ -168,6 +183,12 @@ export default {
         this.message = '获取订单失败，请重试。';
       }
     },
+    // 判断订单是否为今天
+    isToday(dateStr) {
+      const orderDate = new Date(dateStr);
+      const today = new Date();
+      return orderDate.toDateString() === today.toDateString();
+    },
     // 点击订单显示详情，并初始化编辑状态
     showOrderDetails(order) {
       this.selectedOrder = order;
@@ -175,8 +196,6 @@ export default {
     },
     closeModal() {
       this.selectedOrder = null;
-      // 刷新页面
-      location.reload();
     },
     // 将订单状态数字转换为文本
     getStatusText(status) {
@@ -210,19 +229,31 @@ export default {
     },
     // 更新订单状态（调用 updateOrderStatus API）
     async updateOrderStatusHandler() {
-      if (this.selectedOrder && this.editedStatus != null && this.editedStatus != this.selectedOrder.status) {
+      if (this.editedStatus !== this.selectedOrder.status) {
         try {
-          await updateOrderStatus(this.selectedOrder.id, this.editedStatus);
-          // 更新本地订单状态
+          // 更新订单状态
+          const updatedOrder = await updateOrderStatus(this.selectedOrder.id, this.editedStatus);
+
+          // 更新本地状态
           this.selectedOrder.status = this.editedStatus;
-          this.message = '订单状态更新成功';
+
+          // 提示成功消息
+          this.message = '订单状态更新成功！';
+
+          // 刷新页面
+          this.fetchOrders();
+
+          // 关闭模态框
+          this.closeModal();
         } catch (error) {
           console.error('更新订单状态失败：', error);
-          this.message = '更新订单状态失败，请重试';
+          this.message = '更新状态失败，请重试。';
         }
+      } else {
+        this.message = '订单状态未更改。';
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -243,57 +274,40 @@ export default {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-h2 {
+/* 销售额显示样式 */
+.sales-summary {
   margin-bottom: 20px;
-  color: #333;
+  font-size: 18px;
+  font-weight: bold;
 }
 
-/* 筛选区域 */
+/* 筛选区域样式 */
 .filter-container {
   margin-bottom: 20px;
-  text-align: left;
-}
-.filter-container label {
-  margin-right: 10px;
-  font-size: 16px;
-  color: #333;
 }
 
-/* 订单列表样式 */
+/* 订单列表的样式 */
 .order-list {
-  list-style: none;
+  list-style-type: none;
   padding: 0;
-  margin: 0;
 }
 
 .order-item {
-  padding: 15px;
-  border-bottom: 1px solid #ddd;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  margin-bottom: 15px;
 }
 
-.order-item:hover {
-  background-color: #f0f0f0;
+/* 订单卡片样式 */
+.order-summary {
+  padding: 10px;
 }
 
-.order-summary p {
-  margin: 5px 0;
-}
-
-.message {
-  margin-top: 15px;
-  font-size: 16px;
-  color: #ff4d4f;
-}
-
-/* 模态框样式 */
+/* 订单详情模态框样式 */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -301,14 +315,22 @@ h2 {
 }
 
 .modal-content {
-  background: #fff;
+  background: white;
   padding: 20px;
+  width: 60%;
+  max-width: 800px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  width: 400px;
-  text-align: left;
 }
 
-.modal-content h3 {
-  margin-top: 0;
+.message {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* 按钮样式 */
+.el-button {
+  margin-top: 10px;
 }
 </style>
