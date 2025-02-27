@@ -15,9 +15,9 @@
             <p class="price">价格: {{ dish.price }} 元</p>
             <!-- 加减控制区 -->
             <div class="cart-controls">
-              <button @click="removeFromCart(dish)">-</button>
+              <el-button type="danger" @click="removeFromCart(dish)">-</el-button>
               <span>{{ getQuantity(dish.id) }}</span>
-              <button @click="addToCart(dish)">+</button>
+              <el-button type="success" @click="addToCart(dish)">+</el-button>
             </div>
           </div>
         </div>
@@ -26,8 +26,8 @@
       <!-- 购物车概要，显示总价、结算按钮和查看购物车按钮 -->
       <div class="cart-summary">
         <p>总价: {{ totalPrice }} 元</p>
-        <button @click="goToCheckout">结算</button>
-        <button @click="viewCart">查看购物车</button>
+        <el-button type="primary" @click="goToCheckout">结算</el-button>
+        <el-button type="primary" @click="viewCart">查看购物车</el-button>
       </div>
 
       <!-- 错误或提示信息 -->
@@ -216,7 +216,6 @@ h2 {
 }
 
 .cart-controls button {
-  background-color: #007bff;
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -243,7 +242,6 @@ h2 {
 
 .cart-summary button {
   margin: 0 5px;
-  background-color: #28a745;
   color: #fff;
   border: none;
   border-radius: 6px;

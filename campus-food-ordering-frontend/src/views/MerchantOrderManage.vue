@@ -2,19 +2,46 @@
   <div class="container">
     <div class="page-wrapper">
       <h2>我的订单管理</h2>
+
+      <!-- 筛选区域 -->
+      <div class="filter-container">
+        <label for="order-filter">筛选订单:</label>
+        <el-select v-model="selectedStatus" placeholder="请选择订单状态" style="width: 200px">
+          <el-option label="全部订单" value=""></el-option>
+          <el-option label="待处理" value="0"></el-option>
+          <el-option label="已接单" value="1"></el-option>
+          <el-option label="已完成" value="2"></el-option>
+          <el-option label="已取消" value="3"></el-option>
+        </el-select>
+      </div>
+
       <ul class="order-list">
         <li
-            v-for="order in orders"
+            v-for="order in filteredOrders"
             :key="order.id"
             class="order-item"
             @click="showOrderDetails(order)"
         >
-          <div class="order-summary">
-            <p><strong>订单号:</strong> {{ order.id }}</p>
-            <p><strong>用户:</strong> {{ order.userId }}</p>
-            <p><strong>状态:</strong> {{ getStatusText(order.status) }}</p>
-            <p><strong>下单日期:</strong> {{ formatDate(order.createTime) }}</p>
-          </div>
+          <el-card class="order-summary">
+            <template #header>
+              <div class="order-header">
+                <span>订单号: {{ order.id }}</span>
+              </div>
+            </template>
+            <el-descriptions :column="1" border>
+              <el-descriptions-item label="用户">
+                {{ order.userId }}
+              </el-descriptions-item>
+              <el-descriptions-item label="状态">
+                <el-tag :type="statusTagType(order.status)">
+                  {{ getStatusText(order.status) }}
+                </el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item label="下单日期">
+                {{ formatDate(order.createTime) }}
+              </el-descriptions-item>
+            </el-descriptions>
+          </el-card>
         </li>
       </ul>
       <p v-if="message" class="message">{{ message }}</p>
@@ -24,11 +51,27 @@
     <div v-if="selectedOrder" class="modal">
       <div class="modal-content">
         <h3>订单详情</h3>
-        <p><strong>订单号:</strong> {{ selectedOrder.id }}</p>
-        <p><strong>用户:</strong> {{ selectedOrder.userId }}</p>
-        <p><strong>当前状态:</strong> {{ getStatusText(selectedOrder.status) }}</p>
-        <p><strong>下单日期:</strong> {{ formatDate(selectedOrder.createTime) }}</p>
-        <div v-if="selectedOrder.orderItems && selectedOrder.orderItems.length">
+        <el-descriptions :column="1" border>
+          <el-descriptions-item label="订单号">
+            {{ selectedOrder.id }}
+          </el-descriptions-item>
+          <el-descriptions-item label="用户">
+            {{ selectedOrder.userId }}
+          </el-descriptions-item>
+          <el-descriptions-item label="当前状态">
+            <el-tag :type="statusTagType(selectedOrder.status)">
+              {{ getStatusText(selectedOrder.status) }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="下单日期">
+            {{ formatDate(selectedOrder.createTime) }}
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <div
+            v-if="selectedOrder.orderItems && selectedOrder.orderItems.length"
+            style="margin-top: 15px;"
+        >
           <h4>购买菜品：</h4>
           <ul>
             <li v-for="(item, index) in selectedOrder.orderItems" :key="index">
@@ -36,25 +79,32 @@
             </li>
           </ul>
         </div>
+
         <!-- 更新订单状态区域 -->
-        <div class="update-status">
-          <label for="order-status">更新订单状态:</label>
-          <select id="order-status" v-model="editedStatus">
-            <option value="0">待处理</option>
-            <option value="1">已接单</option>
-            <option value="2">已完成</option>
-            <option value="3">已取消</option>
-          </select>
-          <button @click="updateOrderStatusHandler">更新状态</button>
+        <div class="update-status" style="margin-top: 15px;">
+          <el-form label-position="left" label-width="120px" inline>
+            <el-form-item label="更新订单状态">
+              <el-select v-model="editedStatus" placeholder="请选择订单状态" style="width: 150px;">
+                <el-option label="待处理" value="0"></el-option>
+                <el-option label="已接单" value="1"></el-option>
+                <el-option label="已完成" value="2"></el-option>
+                <el-option label="已取消" value="3"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="updateOrderStatusHandler">更新状态</el-button>
+            </el-form-item>
+          </el-form>
         </div>
-        <button @click="closeModal">关闭</button>
+
+        <el-button type="primary" @click="closeModal" style="margin-top: 15px;">关闭</el-button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-// 引入订单和商家/菜品相关的 API
+// 引入订单相关 API（商家订单、订单项及订单状态更新接口），以及获取菜品名称的接口
 import { getOrdersByMerchant, getOrderItems, updateOrderStatus } from '../api/order';
 import { getDishById } from '../api/merchant';
 
@@ -65,7 +115,8 @@ export default {
       message: '',          // 提示或错误信息
       selectedOrder: null,  // 当前选中查看详情的订单
       editedStatus: null,   // 用于编辑订单状态的变量
-      merchantId: localStorage.getItem('merchantId') // 登录后存入 localStorage 的商家ID
+      merchantId: localStorage.getItem('merchantId'), // 登录后存入 localStorage 的商家ID
+      selectedStatus: ""    // 筛选条件，空字符串表示显示全部订单
     };
   },
   created() {
@@ -75,25 +126,31 @@ export default {
       this.message = '商家未登录';
     }
   },
+  computed: {
+    // 根据 selectedStatus 筛选订单
+    filteredOrders() {
+      if (this.selectedStatus === "") {
+        return this.orders;
+      }
+      return this.orders.filter(order => order.status === Number(this.selectedStatus));
+    }
+  },
   methods: {
     async fetchOrders() {
       try {
-        // 获取商家订单（返回的订单对象包含 id、userId、merchantId、status、createTime 等字段）
+        // 获取商家订单
         const response = await getOrdersByMerchant(this.merchantId);
         let orders = response.data;
-        // 按下单日期倒序排列
+        // 按下单日期倒序排列（最新订单在前）
         orders.sort((a, b) => new Date(b.createTime) - new Date(a.createTime));
-
-        // 对每个订单，补充订单项数据，并为每个订单项获取菜品名称
+        // 补充每个订单的订单项数据及菜品名称
         for (let order of orders) {
           try {
             const itemsRes = await getOrderItems(order.id);
             order.orderItems = itemsRes.data;
             for (let item of order.orderItems) {
               try {
-                // 调用 getDishById，根据 dishId 获取菜品名称
                 const dishRes = await getDishById(item.dishId);
-                // 假设返回的 data 就是菜品名称或包含 name 字段的对象
                 item.dishName = dishRes.data;
               } catch (err) {
                 console.error('获取菜品信息失败：', err);
@@ -114,12 +171,12 @@ export default {
     // 点击订单显示详情，并初始化编辑状态
     showOrderDetails(order) {
       this.selectedOrder = order;
-      this.editedStatus = order.status; // 默认选中当前订单状态
+      this.editedStatus = order.status;
     },
     closeModal() {
       this.selectedOrder = null;
     },
-    // 将订单状态数字转换为文本显示
+    // 将订单状态数字转换为文本
     getStatusText(status) {
       switch (status) {
         case 0:
@@ -138,6 +195,16 @@ export default {
     formatDate(dateStr) {
       const date = new Date(dateStr);
       return date.toLocaleString();
+    },
+    // 根据订单状态返回对应的 Element Plus 标签类型
+    statusTagType(status) {
+      const tagTypeMap = {
+        0: "warning",
+        1: "primary",
+        2: "success",
+        3: "danger"
+      };
+      return tagTypeMap[status] || "info";
     },
     // 更新订单状态（调用 updateOrderStatus API）
     async updateOrderStatusHandler() {
@@ -158,7 +225,6 @@ export default {
 </script>
 
 <style scoped>
-/* 整体布局 */
 .container {
   display: flex;
   justify-content: center;
@@ -172,11 +238,22 @@ export default {
   padding: 30px;
   border-radius: 10px;
   width: 720px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 h2 {
   margin-bottom: 20px;
+  color: #333;
+}
+
+/* 筛选区域 */
+.filter-container {
+  margin-bottom: 20px;
+  text-align: left;
+}
+.filter-container label {
+  margin-right: 10px;
+  font-size: 16px;
   color: #333;
 }
 
@@ -215,7 +292,7 @@ h2 {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -231,30 +308,5 @@ h2 {
 
 .modal-content h3 {
   margin-top: 0;
-}
-
-.modal-content button {
-  margin-top: 15px;
-  padding: 8px 16px;
-  background-color: #007bff;
-  border: none;
-  color: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.modal-content button:hover {
-  background-color: #0056b3;
-}
-
-/* 更新状态区域 */
-.update-status {
-  margin-top: 15px;
-  display: flex;
-  align-items: center;
-}
-
-.update-status label {
-  margin-right: 10px;
 }
 </style>

@@ -1,40 +1,43 @@
 <template>
   <div class="container">
-    <div class="page-wrapper">
-      <h2>商家列表</h2>
+    <el-card class="page-wrapper" shadow="hover">
+      <template #header>
+        <div class="header-wrapper">
+          <h2>商家列表</h2>
+          <div class="header-buttons">
+            <el-button type="primary" @click="goToOrderList" icon="el-icon-tickets">
+              订单列表
+            </el-button>
+            <el-button type="primary" @click="goToPersonalInfo" icon="el-icon-user">
+              个人信息
+            </el-button>
+          </div>
+        </div>
+      </template>
 
-      <!-- 新增订单列表按钮 -->
-      <button class="order-list-button" @click="goToOrderList">订单列表</button>
-
-      <ul class="merchant-list">
-        <li
-            v-for="merchant in merchants"
-            :key="merchant.id"
-            class="merchant-item"
-            @click="goToMerchant(merchant.id)"
-        >
-          <div class="merchant-card">
-            <!-- 如果有商家 logo，可以在这里展示
-                 例如：<img :src="merchant.logo" alt="商家logo" class="merchant-logo" />
-                 没有时可使用占位图或背景色 -->
+      <el-row :gutter="20" justify="center">
+        <el-col v-for="merchant in merchants" :key="merchant.id" :xs="24" :sm="12" :md="8" :lg="6">
+          <el-card shadow="hover" class="merchant-item" @click="goToMerchant(merchant.id)">
             <div class="merchant-logo-placeholder">
-              <span>Logo</span>
+              <el-image v-if="merchant.logo" :src="merchant.logo" fit="contain" class="merchant-logo" />
+              <span v-else>Logo</span>
             </div>
             <div class="merchant-info">
               <h3>{{ merchant.name }}</h3>
-              <p>店铺介绍（可选）</p>
+              <el-text type="info">店铺介绍（可选）</el-text>
             </div>
-          </div>
-        </li>
-      </ul>
+          </el-card>
+        </el-col>
+      </el-row>
 
-      <p v-if="message" class="message">{{ message }}</p>
-    </div>
+      <el-alert v-if="message" :title="message" type="error" show-icon class="alert-message" />
+    </el-card>
   </div>
 </template>
 
 <script>
 import { listMerchants } from '../api/merchant';
+import { ElMessage } from 'element-plus';
 
 export default {
   data() {
@@ -50,10 +53,11 @@ export default {
     async fetchMerchants() {
       try {
         const response = await listMerchants();
-        this.merchants = response.data; // 后端返回的商家数组
+        this.merchants = response.data;
       } catch (error) {
         console.error(error);
         this.message = '获取商家列表失败，请重试。';
+        ElMessage.error('获取商家列表失败');
       }
     },
     goToMerchant(merchantId) {
@@ -61,65 +65,42 @@ export default {
     },
     goToOrderList() {
       this.$router.push({ path: '/user/orderlist' });
+    },
+    goToPersonalInfo() {
+      this.$router.push({ path: '/user/personalinfo' });
     }
   }
 };
 </script>
 
 <style scoped>
-/* 整体布局 */
 .container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   background-color: #f4f4f9;
+  padding: 20px;
 }
 
 .page-wrapper {
-  background: #fff;
-  padding: 30px;
+  width: 80%;
+  max-width: 900px;
   border-radius: 10px;
-  width: 720px; /* 可以根据需要扩大显示区域 */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  text-align: center;
 }
 
-h2 {
-  margin-bottom: 20px;
-  color: #333;
+.header-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-/* 新增按钮样式 */
-.order-list-button {
-  padding: 8px 16px;
-  margin-bottom: 20px;
-  font-size: 16px;
-  color: #fff;
-  background-color: #007bff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.order-list-button:hover {
-  background-color: #0056b3;
-}
-
-/* 列表布局：flex 布局 + 卡片 */
-.merchant-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;          /* 使用 flex 布局 */
-  flex-wrap: wrap;        /* 宽度不足时自动换行 */
-  justify-content: center;
-  gap: 20px;              /* 卡片之间的间距 */
+.header-buttons {
+  display: flex;
+  gap: 10px;
 }
 
 .merchant-item {
-  width: 220px;           /* 卡片宽度，可根据需求调整 */
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -129,16 +110,6 @@ h2 {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* 卡片主体 */
-.merchant-card {
-  background-color: #fff;
-  border-radius: 8px;
-  overflow: hidden;        /* 隐藏边缘超出部分 */
-  border: 1px solid #ddd;
-  text-align: center;
-}
-
-/* 如果有实际商家 logo，请在这里用 <img> 标签替换 */
 .merchant-logo-placeholder {
   width: 100%;
   height: 120px;
@@ -148,26 +119,15 @@ h2 {
   justify-content: center;
   color: #aaa;
   font-size: 18px;
+  border-radius: 8px;
 }
 
-.merchant-info {
-  padding: 12px;
+.merchant-logo {
+  width: 100%;
+  height: 100%;
 }
 
-.merchant-info h3 {
-  margin: 0 0 8px;
-  color: #333;
-}
-
-.merchant-info p {
-  margin: 0;
-  color: #777;
-}
-
-/* 提示消息 */
-.message {
-  margin-top: 15px;
-  font-size: 16px;
-  color: #ff4d4f;
+.alert-message {
+  margin-top: 20px;
 }
 </style>

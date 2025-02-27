@@ -2,17 +2,25 @@ package cn.edu.jlu.user.service;
 
 import cn.edu.jlu.user.entity.LoginResponse;
 import cn.edu.jlu.user.entity.User;
+import cn.edu.jlu.user.entity.UserAddress;
+import cn.edu.jlu.user.entity.UserPersonalInfoDTO;
 import cn.edu.jlu.user.mapper.UserMapper;
+import cn.edu.jlu.user.mapper.UserAddressMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.util.DigestUtils;
+
+import java.util.List;
 
 @Service
 public class UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private UserAddressMapper userAddressMapper;
 
     /**
      * 用户注册
@@ -67,5 +75,65 @@ public class UserService {
         resp.setUserId(user.getId());
         resp.setMessage("登录成功，欢迎 " + username);
         return resp;
+    }
+
+    /**
+     * 获取用户个人信息（包括地址）
+     */
+    public UserPersonalInfoDTO getUserPersonalInfo(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            return null;  // 或抛出异常提示“用户不存在”
+        }
+        // 查询该用户的所有地址
+        QueryWrapper<UserAddress> wrapper = new QueryWrapper<>();
+        wrapper.eq("user_id", userId);
+        List<UserAddress> addresses = userAddressMapper.selectList(wrapper);
+
+        // 组装 DTO
+        UserPersonalInfoDTO dto = new UserPersonalInfoDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setPassword(user.getPassword());  // 注意：实际开发中不建议直接返回密码
+        dto.setPhone(user.getPhone());
+        dto.setAvatar(user.getAvatar());
+        dto.setStatus(user.getStatus());
+        dto.setCreateTime(user.getCreateTime());
+        dto.setUpdateTime(user.getUpdateTime());
+        dto.setAddresses(addresses);
+        return dto;
+    }
+
+    /**
+     * 更新用户个人信息（包括地址）
+     * 简单实现：更新用户基本信息后，删除原地址，再插入新地址列表
+     */
+    public String updateUserPersonalInfo(UserPersonalInfoDTO dto) {
+        // 更新用户基本信息
+        User user = new User();
+        user.setId(dto.getId());
+        user.setUsername(dto.getUsername());
+        // 如果传入的密码非空，进行 MD5 加密再更新
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+            String md5Password = DigestUtils.md5DigestAsHex(dto.getPassword().getBytes());
+            user.setPassword(md5Password);
+        }
+        user.setPhone(dto.getPhone());
+        user.setAvatar(dto.getAvatar());
+        user.setStatus(dto.getStatus());
+        int result = userMapper.updateById(user);
+
+        // 更新地址信息：先删除该用户所有地址，再插入新的地址列表
+        QueryWrapper<UserAddress> wrapper = new QueryWrapper<>();
+        wrapper.eq("user_id", dto.getId());
+        userAddressMapper.delete(wrapper);
+
+        if (dto.getAddresses() != null) {
+            for (UserAddress address : dto.getAddresses()) {
+                address.setUserId(dto.getId());
+                userAddressMapper.insert(address);
+            }
+        }
+        return result > 0 ? "更新成功" : "更新失败";
     }
 }

@@ -1,6 +1,9 @@
 package cn.edu.jlu.user.entity;
 
 import java.util.Date;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 @Data  // 自动生成 getter、setter、toString 等方法（需要安装 Lombok 插件）

@@ -2,19 +2,47 @@
   <div class="container">
     <div class="page-wrapper">
       <h2>我的订单列表</h2>
+
+      <!-- 筛选订单状态的下拉框 -->
+      <div class="filter-container">
+        <label for="order-filter">筛选订单:</label>
+        <el-select v-model="selectedStatus" placeholder="请选择订单状态" style="width: 200px">
+          <el-option label="全部订单" value=""></el-option>
+          <el-option label="待处理" value="0"></el-option>
+          <el-option label="已接单" value="1"></el-option>
+          <el-option label="已完成" value="2"></el-option>
+          <el-option label="已取消" value="3"></el-option>
+        </el-select>
+      </div>
+
+
       <ul class="order-list">
         <li
-            v-for="order in orders"
+            v-for="order in filteredOrders"
             :key="order.id"
             class="order-item"
             @click="showOrderDetails(order)"
         >
-          <div class="order-summary">
-            <p><strong>订单号:</strong> {{ order.id }}</p>
-            <p><strong>商家:</strong> {{ order.merchantName }}</p>
-            <p><strong>状态:</strong> {{ getStatusText(order.status) }}</p>
-            <p><strong>下单日期:</strong> {{ formatDate(order.createTime) }}</p>
-          </div>
+          <el-card class="order-summary">
+            <template #header>
+              <div class="order-header">
+                <span>订单号: {{ order.id }}</span>
+              </div>
+            </template>
+            <el-descriptions :column="1" border>
+              <el-descriptions-item label="商家">
+                {{ order.merchantName }}
+              </el-descriptions-item>
+              <el-descriptions-item label="状态">
+                <el-tag :type="statusTagType(order.status)">
+                  {{ getStatusText(order.status) }}
+                </el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item label="下单日期">
+                {{ formatDate(order.createTime) }}
+              </el-descriptions-item>
+            </el-descriptions>
+          </el-card>
         </li>
       </ul>
       <p v-if="message" class="message">{{ message }}</p>
@@ -26,7 +54,12 @@
         <h3>订单详情</h3>
         <p><strong>订单号:</strong> {{ selectedOrder.id }}</p>
         <p><strong>商家:</strong> {{ selectedOrder.merchantName }}</p>
-        <p><strong>状态:</strong> {{ getStatusText(selectedOrder.status) }}</p>
+        <p>
+          <strong>状态:</strong>
+          <span :class="statusClass(selectedOrder.status)">
+            {{ getStatusText(selectedOrder.status) }}
+          </span>
+        </p>
         <p><strong>下单日期:</strong> {{ formatDate(selectedOrder.createTime) }}</p>
         <div v-if="selectedOrder.orderItems && selectedOrder.orderItems.length">
           <h4>购买菜品：</h4>
@@ -36,18 +69,18 @@
             </li>
           </ul>
         </div>
-        <button @click="closeModal">关闭</button>
+        <!-- 仅在订单状态为待处理时显示取消订单按钮 -->
+        <el-button type="danger" v-if="selectedOrder.status === 0" @click="cancelOrder(selectedOrder)">
+          取消订单
+        </el-button>
+        <el-button type="primary" @click="closeModal">关闭</el-button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-// 注意：这里需要用到订单和商家/菜品相关的 API
-// 假设在 api/order.js 中新增了 getOrderItems(orderId) 接口
-import { getOrdersByUser,
-  getOrderItems
-} from '../api/order';
+import { getOrdersByUser, getOrderItems, updateOrderStatus } from '../api/order';
 import { getMerchant, getDishById } from '../api/merchant';
 
 export default {
@@ -56,7 +89,8 @@ export default {
       orders: [],           // 用户的所有订单，附加上订单项及商家名称
       message: '',          // 错误或提示信息
       selectedOrder: null,  // 当前选中查看详情的订单
-      userId: localStorage.getItem('userId') // 登录后存入 localStorage 的 userId
+      userId: localStorage.getItem('userId'),
+      selectedStatus: ""    // 筛选条件，空字符串表示显示所有状态
     };
   },
   created() {
@@ -66,18 +100,26 @@ export default {
       this.message = '用户未登录';
     }
   },
+  computed: {
+    // 根据 selectedStatus 过滤订单
+    filteredOrders() {
+      if (this.selectedStatus === "") {
+        return this.orders;
+      }
+      return this.orders.filter(order => order.status === Number(this.selectedStatus));
+    }
+  },
   methods: {
     async fetchOrders() {
       try {
-        // 获取用户订单（返回的订单仅包含 id、user_id、merchant_id、status、createTime 等字段）
+        // 获取用户订单
         const response = await getOrdersByUser(this.userId);
         let orders = response.data;
         // 按下单日期倒序排列
         orders.sort((a, b) => new Date(b.createTime) - new Date(a.createTime));
 
-        // 对每个订单，补充订单项和商家名称
+        // 为每个订单补充商家名称和订单项
         for (let order of orders) {
-          // 获取商家名称（假设 getMerchant 返回一个商家对象，其 name 字段为商家名称）
           try {
             const merchantRes = await getMerchant(order.merchantId);
             order.merchantName = merchantRes.data.name;
@@ -86,15 +128,13 @@ export default {
             order.merchantName = order.merchantId;
           }
 
-          // 获取订单项（调用 getOrderItems(order.id) 接口，返回数组，每项包含 dish_id 和 quantity）
           try {
             const itemsRes = await getOrderItems(order.id);
             order.orderItems = itemsRes.data;
-            // 对每个订单项，根据 dish_id 获取菜品名称
+            // 为每个订单项补充菜品名称
             for (let item of order.orderItems) {
               try {
                 const dishRes = await getDishById(item.dishId);
-                console.log(dishRes)
                 item.dishName = dishRes.data;
               } catch (err) {
                 console.error('获取菜品信息失败：', err);
@@ -112,32 +152,67 @@ export default {
         this.message = '获取订单失败，请重试。';
       }
     },
-    // 点击订单显示详情
+    // 显示订单详情
     showOrderDetails(order) {
       this.selectedOrder = order;
     },
     closeModal() {
       this.selectedOrder = null;
     },
-    // 将订单状态数字转换为文本（根据实际业务进行调整）
+    // 将订单状态数字转换为文本
     getStatusText(status) {
+      const statusMap = {
+        0: "待处理",
+        1: "已接单",
+        2: "已完成",
+        3: "已取消",
+      };
+      return statusMap[status] || "未知状态";
+    },
+    // 根据订单状态返回对应的 CSS 类
+    statusTagType(status) {
+      const tagTypeMap = {
+        0: "warning", // 待处理 - 橙色
+        1: "primary", // 已接单 - 蓝色
+        2: "success", // 已完成 - 绿色
+        3: "danger",  // 已取消 - 红色
+      };
+      return tagTypeMap[status] || "info";
+    },
+    statusClass(status) {
       switch (status) {
         case 0:
-          return '待处理';
+          return 'status-pending';
         case 1:
-          return '已接单';
+          return 'status-accepted';
         case 2:
-          return '已完成';
+          return 'status-completed';
         case 3:
-          return '已取消';
+          return 'status-cancelled';
         default:
-          return '未知状态';
+          return '';
       }
     },
-    // 格式化日期
-    formatDate(dateStr) {
-      const date = new Date(dateStr);
-      return date.toLocaleString();
+    // 格式化日期字符串
+    formatDate(time) {
+      return new Date(time).toLocaleString();
+    },
+    // 取消订单（仅限待处理订单）
+    async cancelOrder(order) {
+      if (confirm('确定取消该订单吗？')) {
+        try {
+          const response = await updateOrderStatus(order.id, 3); // 3 表示“已取消”
+          this.message = response.data;
+          // 更新本地订单状态
+          order.status = 3;
+          if (this.selectedOrder && this.selectedOrder.id === order.id) {
+            this.selectedOrder.status = 3;
+          }
+        } catch (error) {
+          console.error(error);
+          this.message = '取消订单失败，请重试。';
+        }
+      }
     }
   }
 };
@@ -164,6 +239,21 @@ export default {
 h2 {
   margin-bottom: 20px;
   color: #333;
+}
+
+/* 筛选区域 */
+.filter-container {
+  margin-bottom: 20px;
+  text-align: left;
+}
+.filter-container label {
+  margin-right: 10px;
+  font-size: 16px;
+  color: #333;
+}
+.filter-container select {
+  padding: 6px 8px;
+  font-size: 16px;
 }
 
 /* 订单列表样式 */
@@ -222,14 +312,22 @@ h2 {
 .modal-content button {
   margin-top: 15px;
   padding: 8px 16px;
-  background-color: #007bff;
   border: none;
-  color: #fff;
   border-radius: 4px;
   cursor: pointer;
 }
 
-.modal-content button:hover {
-  background-color: #0056b3;
+/* 订单状态颜色 */
+.status-pending {
+  color: blue;
+}
+.status-accepted {
+  color: #bdbd00;
+}
+.status-completed {
+  color: green;
+}
+.status-cancelled {
+  color: red;
 }
 </style>
