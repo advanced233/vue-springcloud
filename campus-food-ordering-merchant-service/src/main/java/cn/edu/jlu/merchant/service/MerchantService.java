@@ -86,10 +86,16 @@ public class MerchantService {
 
     // 更新店铺信息（例如名称、logo 等），merchant 对象必须包含 id
     public String updateMerchantInfo(Merchant merchant) {
+        QueryWrapper<Merchant> query = new QueryWrapper<>();
+        query.eq("account", merchant.getAccount());
+        Merchant merchant_pwd = merchantMapper.selectOne(query);// 原本的密码
+
         // 如果传入的密码非空，进行 MD5 加密再更新
         if (merchant.getPassword() != null && !merchant.getPassword().isEmpty()) {
             String md5Password = DigestUtils.md5DigestAsHex(merchant.getPassword().getBytes());
             merchant.setPassword(md5Password);
+        } else {// 如果传入的密码为空, 则写入旧密码
+            merchant.setPassword(merchant_pwd.getPassword());
         }
         int result = merchantMapper.updateById(merchant);
         return result > 0 ? "更新成功" : "更新失败";

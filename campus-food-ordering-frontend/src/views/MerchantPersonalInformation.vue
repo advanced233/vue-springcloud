@@ -2,6 +2,11 @@
   <div class="container">
     <div class="page-wrapper">
       <h2>商家信息</h2>
+      <!-- 日销售额显示 -->
+      <div class="daily-sales">
+        <h3>今日销售额: ¥{{ dailySales }}</h3>
+      </div>
+
       <el-form :model="form" label-width="100px">
         <!-- Logo -->
         <el-form-item label="Logo">
@@ -42,6 +47,8 @@
 
 <script>
 import { getMerchant, updateMerchantInfo } from '../api/merchant';
+import { getOrdersByMerchant, getOrderItems } from '../api/order';
+import { getDishById } from '../api/merchant';
 
 export default {
   name: 'MerchantPersonalInformation',
@@ -54,13 +61,17 @@ export default {
         name: '',
         logo: ''
       },
-      message: ''
+      message: '',
+      orders: [],           // 当前商家的订单列表（附加了订单项数据）
+      dailySales: 0,        // 今日销售额
+      merchantId: localStorage.getItem('merchantId') // 登录后存入 localStorage 的商家ID
     };
   },
   created() {
     const merchantId = localStorage.getItem('merchantId');
     if (merchantId) {
       this.fetchMerchantInfo(merchantId);
+      this.fetchOrders(); // 获取订单
     } else {
       this.message = '商家未登录';
     }
@@ -71,7 +82,6 @@ export default {
       getMerchant(merchantId)
           .then(response => {
             let data = response.data || {};
-            // 不显示加密后的密码
             data.password = '';
             this.form = data;
           })
@@ -80,7 +90,65 @@ export default {
             this.message = '获取商家信息失败';
           });
     },
-    // 保存更新后的商家信息
+
+    // 获取订单列表
+    async fetchOrders() {
+      try {
+        const response = await getOrdersByMerchant(this.merchantId);
+        let orders = response.data;
+        orders.sort((a, b) => new Date(b.createTime) - new Date(a.createTime));
+
+        // 补充订单项数据
+        for (let order of orders) {
+          try {
+            const itemsRes = await getOrderItems(order.id);
+            order.orderItems = itemsRes.data;
+            for (let item of order.orderItems) {
+              try {
+                const dishRes = await getDishById(item.dishId);
+                item.dishName = dishRes.data;
+              } catch (err) {
+                console.error('获取菜品信息失败：', err);
+                item.dishName = '未知菜品';
+              }
+            }
+          } catch (err) {
+            console.error('获取订单项失败：', err);
+            order.orderItems = [];
+          }
+        }
+        this.orders = orders;
+        this.calculateDailySales();  // 获取订单后计算今日销售额
+      } catch (error) {
+        console.error(error);
+        this.message = '获取订单失败，请重试。';
+      }
+    },
+
+    // 计算今日销售额
+    calculateDailySales() {
+      const today = new Date().toLocaleDateString(); // 获取今天的日期 (格式化为 yyyy/mm/dd)
+      let totalSales = 0;
+
+      // 计算所有今天已完成的订单的总销售额
+      this.orders.forEach(order => {
+        if (this.formatDate(order.createTime) === today && order.status === 2) {
+          order.orderItems.forEach(item => {
+            totalSales += item.price * item.quantity; // 假设每个 item 有 price 和 quantity 字段
+          });
+        }
+      });
+
+      this.dailySales = totalSales.toFixed(2); // 设置为保留两位小数的格式
+    },
+
+    // 格式化日期，简化成 yyyy/mm/dd 格式
+    formatDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString();
+    },
+
+    // 保存商家信息
     saveMerchantInfo() {
       updateMerchantInfo(this.form)
           .then(response => {
@@ -116,6 +184,14 @@ export default {
 h2 {
   margin-bottom: 20px;
   color: #333;
+}
+
+/* 日销售额显示 */
+.daily-sales {
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #2c3e50;
 }
 
 /* Logo区域 */
