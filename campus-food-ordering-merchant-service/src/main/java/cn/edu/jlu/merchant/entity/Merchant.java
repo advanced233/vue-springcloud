@@ -17,4 +17,5 @@ public class Merchant {
     private Integer status;    // 1 正常，0 禁用
     private Date createTime;
     private Date updateTime;
+    private String type;
 }
