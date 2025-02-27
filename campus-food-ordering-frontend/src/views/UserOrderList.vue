@@ -61,6 +61,8 @@
           </span>
         </p>
         <p><strong>下单日期:</strong> {{ formatDate(selectedOrder.createTime) }}</p>
+        <!-- 新增订单金额显示 -->
+        <p><strong>订单金额:</strong> {{ selectedOrder.totalAmount }}</p>
         <div v-if="selectedOrder.orderItems && selectedOrder.orderItems.length">
           <h4>购买菜品：</h4>
           <ul>
@@ -118,7 +120,7 @@ export default {
         // 按下单日期倒序排列
         orders.sort((a, b) => new Date(b.createTime) - new Date(a.createTime));
 
-        // 为每个订单补充商家名称和订单项
+        // 为每个订单补充商家名称、订单项和订单总金额
         for (let order of orders) {
           try {
             const merchantRes = await getMerchant(order.merchantId);

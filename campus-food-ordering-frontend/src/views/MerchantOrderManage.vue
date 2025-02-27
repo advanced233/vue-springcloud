@@ -175,6 +175,8 @@ export default {
     },
     closeModal() {
       this.selectedOrder = null;
+      // 刷新页面
+      location.reload();
     },
     // 将订单状态数字转换为文本
     getStatusText(status) {
