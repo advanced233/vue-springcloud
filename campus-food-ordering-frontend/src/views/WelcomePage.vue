@@ -7,6 +7,8 @@
         <el-button type="success" size="large" @click="goToUserRegister">用户注册</el-button>
         <el-button type="warning" size="large" @click="goToMerchantLogin">商家登录</el-button>
         <el-button type="danger" size="large" @click="goToMerchantRegister">商家注册</el-button>
+        <el-button type="info" size="large" @click="goToAdminLogin">管理员登录</el-button>
+        <el-button type="default" size="large" @click="goToAdminRegister">管理员注册</el-button>
       </el-space>
     </el-card>
   </div>
@@ -26,6 +28,12 @@ export default {
     },
     goToMerchantRegister() {
       this.$router.push('/merchant/register');
+    },
+    goToAdminLogin() {
+      this.$router.push('/admin/login');
+    },
+    goToAdminRegister() {
+      this.$router.push('/admin/register');
     },
   },
 };

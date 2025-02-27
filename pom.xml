@@ -14,6 +14,7 @@
         <module>campus-food-ordering-user-service</module>
         <module>campus-food-ordering-merchant-service</module>
         <module>campus-food-ordering-order-service</module>
+        <module>campus-food-ordering-admin-service</module>
     </modules>
 
     <properties>

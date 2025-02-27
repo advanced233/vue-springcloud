@@ -14,7 +14,9 @@ import MerchantRegister from '../views/MerchantRegister.vue';
 import MerchantHomePage from "../views/MerchantHomePage.vue";
 import UserOrderList from "../views/UserOrderList.vue";
 import MerchantOrderManage from "../views/MerchantOrderManage.vue";
-import UserPersonalInformation from "../views/UserPersonalInformation.vue"; // 商家注册页面
+import UserPersonalInformation from "../views/UserPersonalInformation.vue";
+import AdminRegister from "../views/AdminRegister.vue";
+import AdminLogin from "../views/AdminLogin.vue"; // 商家注册页面
 
 const routes = [
     {
@@ -76,7 +78,17 @@ const routes = [
         path: '/merchant/ordermanage',
         name: 'MerchantOrderManage',
         component: MerchantOrderManage
-    }
+    },
+    {
+        path: '/admin/register',
+        name: 'AdminRegister',
+        component: AdminRegister
+    },
+    {
+        path: '/admin/login',
+        name: 'AdminLogin',
+        component: AdminLogin
+    },
 ];
 
 const router = createRouter({
