@@ -6,24 +6,33 @@
       <!-- 菜品卡片区 -->
       <div class="dishes-wrapper">
         <div class="dish-card" v-for="dish in dishes" :key="dish.id">
+          <!-- 使用 el-image 显示图片 -->
           <div class="dish-image">
-            <!-- 占位区域，可根据需要替换为 <img :src="dish.image" /> -->
+            <el-image
+                v-if="dish.image"
+                :src="dish.image"
+                fit="contain"
+                class="dish-image-el"
+            />
+            <span v-else>No Image</span>
           </div>
+
           <div class="dish-info">
             <h3>{{ dish.name }}</h3>
             <p>{{ dish.description }}</p>
             <p class="price">价格: {{ dish.price }} 元</p>
-            <!-- 加减控制区 -->
+
+            <!-- 加减控制区（只增加 size="small" 让按钮更小） -->
             <div class="cart-controls">
-              <el-button type="danger" @click="removeFromCart(dish)">-</el-button>
+              <el-button type="danger" size="small" @click="removeFromCart(dish)">-</el-button>
               <span>{{ getQuantity(dish.id) }}</span>
-              <el-button type="success" @click="addToCart(dish)">+</el-button>
+              <el-button type="success" size="small" @click="addToCart(dish)">+</el-button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 购物车概要，显示总价、结算按钮和查看购物车按钮 -->
+      <!-- 购物车概要 -->
       <div class="cart-summary">
         <p>总价: {{ totalPrice }} 元</p>
         <el-button type="primary" @click="goToCheckout">结算</el-button>
@@ -182,6 +191,13 @@ h2 {
   width: 100%;
   height: 120px;
   background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dish-image-el {
+  width: 100%;
+  height: 100%;
 }
 
 /* 菜品信息 */
