@@ -64,6 +64,12 @@ public class MerchantService {
             return resp;
         }
 
+        if(merchant.getStatus() == 0) {
+            resp.setMerchantId(null);
+            resp.setStatus(0);
+            return resp;
+        }
+
         String md5Password = DigestUtils.md5DigestAsHex(password.getBytes());
         if (!md5Password.equals(merchant.getPassword())) {
             resp.setMerchantId(null);
@@ -74,6 +80,7 @@ public class MerchantService {
         // 登录成功
         resp.setMerchantId(merchant.getId());
         resp.setMessage("登录成功，欢迎 " + merchant.getName());
+        resp.setStatus(merchant.getStatus());
         return resp;
     }
 

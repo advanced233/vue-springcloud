@@ -7,6 +7,7 @@ public class MerchantLoginResponse {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long merchantId;
     private String message;   // 登录成功 / 商家不存在 / 密码错误 等
+    private Integer status;
 
     public MerchantLoginResponse() {}
 
@@ -27,4 +28,6 @@ public class MerchantLoginResponse {
     public void setMessage(String message) {
         this.message = message;
     }
+    public Integer getStatus() { return status; }
+    public void setStatus(Integer status) { this.status = status; }
 }

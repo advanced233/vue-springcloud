@@ -22,10 +22,18 @@
           />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleLogin" class="full-width">登录</el-button>
+          <el-button type="primary" @click="handleLogin" class="full-width"
+          >登录</el-button
+          >
         </el-form-item>
       </el-form>
-      <el-alert v-if="message" :title="message" type="error" show-icon class="alert-message" />
+      <el-alert
+          v-if="message"
+          :title="message"
+          type="error"
+          show-icon
+          class="alert-message"
+      />
     </el-card>
   </div>
 </template>
@@ -46,11 +54,20 @@ export default {
     async handleLogin() {
       try {
         const response = await loginMerchant(this.account, this.password);
-        const { merchantId, message } = response.data;
+        // 后端返回的对象中包含 merchantId, message, status
+        const { merchantId, message, status } = response.data;
 
-        // 判断后端返回的 merchantId 是否为 null
+        console.log(response.data)
+
+        // 若商家被封禁（status=0），则提示并终止登录
+        if (status === 0) {
+          this.message = '该商家已被封禁，无法登录';
+          ElMessage.error(this.message);
+          return;
+        }
+
+        // 如果 merchantId 存在且 status !== 0 => 登录成功
         if (merchantId) {
-          // 登录成功
           localStorage.setItem('merchantId', merchantId);
           this.message = message; // 如“登录成功，欢迎 xxx”
           this.$router.push('/merchant/homepage');

@@ -59,6 +59,15 @@ public class UserService {
             // 用户不存在
             resp.setUserId(null);
             resp.setMessage("用户不存在");
+            resp.setStatus(null); // 或者 -1 表示不存在
+            return resp;
+        }
+
+        // 检查是否封禁
+        if (user.getStatus() == 0) {
+            resp.setUserId(null);
+            resp.setMessage("该用户已被封禁");
+            resp.setStatus(0); // 0 表示被封禁
             return resp;
         }
 
@@ -68,12 +77,14 @@ public class UserService {
             // 密码错误
             resp.setUserId(null);
             resp.setMessage("密码错误");
+            resp.setStatus(null); // 或者 -2 表示密码错误
             return resp;
         }
 
         // 否则登录成功
         resp.setUserId(user.getId());
         resp.setMessage("登录成功，欢迎 " + username);
+        resp.setStatus(user.getStatus());
         return resp;
     }
 

@@ -7,6 +7,7 @@ public class LoginResponse {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long userId;   // 用户ID，可为null
     private String message;  // 提示消息，如"用户不存在"、"密码错误"、"登录成功..."
+    private Integer status;
 
     // 无参构造
     public LoginResponse() {}
@@ -29,5 +30,11 @@ public class LoginResponse {
     }
     public void setMessage(String message) {
         this.message = message;
+    }
+    public Integer getStatus() {
+        return status;
+    }
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }
