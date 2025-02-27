@@ -187,11 +187,12 @@ h2 {
 }
 
 .avatar-preview {
-  width: 50px;
-  height: 50px;
+  width: 75px; /* 增加头像的宽度 */
+  height: 75px; /* 增加头像的高度 */
   border-radius: 50%;
   margin-left: 10px;
 }
+
 
 /* 地址项样式 */
 .address-item {
