@@ -13,7 +13,13 @@
           <el-input v-model="account" placeholder="请输入账号" clearable />
         </el-form-item>
         <el-form-item label="密码">
-          <el-input v-model="password" type="password" placeholder="请输入密码" clearable show-password />
+          <el-input
+              v-model="password"
+              type="password"
+              placeholder="请输入密码"
+              clearable
+              show-password
+          />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleLogin" class="full-width">登录</el-button>
@@ -41,9 +47,18 @@ export default {
       try {
         const response = await loginMerchant(this.account, this.password);
         const { merchantId, message } = response.data;
-        localStorage.setItem('merchantId', merchantId);
-        this.message = message;
-        this.$router.push('/merchant/homepage');
+
+        // 判断后端返回的 merchantId 是否为 null
+        if (merchantId) {
+          // 登录成功
+          localStorage.setItem('merchantId', merchantId);
+          this.message = message; // 如“登录成功，欢迎 xxx”
+          this.$router.push('/merchant/homepage');
+        } else {
+          // 登录失败
+          this.message = message; // 如“商家不存在”或“密码错误”
+          ElMessage.error(message);
+        }
       } catch (error) {
         console.error(error);
         this.message = '登录失败，请重试。';
