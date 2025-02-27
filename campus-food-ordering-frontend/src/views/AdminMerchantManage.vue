@@ -1,6 +1,7 @@
 <template>
   <div class="container">
     <div class="page-wrapper">
+      <el-button type="text" icon="el-icon-back" @click="goBack">返回</el-button>
       <h2>商户管理</h2>
 
       <!-- 商户列表 -->
@@ -85,6 +86,9 @@ export default {
         console.error(error);
         this.message = '获取商户列表失败，请稍后重试。';
       }
+    },
+    goBack() {
+      this.$router.go(-1);
     },
     // 将商户状态转换为可读文本
     getStatusText(status) {

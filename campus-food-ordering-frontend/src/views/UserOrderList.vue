@@ -1,6 +1,7 @@
 <template>
   <div class="container">
     <div class="page-wrapper">
+      <el-button type="text" icon="el-icon-back" @click="goBack">返回</el-button>
       <h2>我的订单列表</h2>
 
       <!-- 筛选订单状态的下拉框 -->
@@ -153,6 +154,9 @@ export default {
         console.error(error);
         this.message = '获取订单失败，请重试。';
       }
+    },
+    goBack() {
+      this.$router.go(-1);
     },
     // 显示订单详情
     showOrderDetails(order) {

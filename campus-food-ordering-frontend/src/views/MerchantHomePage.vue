@@ -5,6 +5,7 @@
       <!-- 标题及管理按钮 -->
       <template #header>
         <div class="header-wrapper">
+          <el-button type="text" icon="el-icon-back" @click="goBack">返回</el-button>
           <h2>商家菜品管理</h2>
           <div class="management-buttons">
             <el-button
@@ -207,6 +208,9 @@ export default {
         this.message = '获取菜品列表失败，请重试。'
         ElMessage.error('获取菜品列表失败')
       }
+    },
+    goBack() {
+      this.$router.go(-1);
     },
     // 切换菜品状态（上架/下架）
     async toggleStatus(dish) {

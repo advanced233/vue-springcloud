@@ -1,6 +1,7 @@
 <template>
   <div class="container">
     <div class="page-wrapper">
+      <el-button type="text" icon="el-icon-back" @click="goBack">返回</el-button>
       <h2>用户管理</h2>
 
       <!-- 用户列表 -->
@@ -84,6 +85,9 @@ export default {
         console.error(error);
         this.message = '获取用户列表失败，请稍后重试。';
       }
+    },
+    goBack() {
+      this.$router.go(-1);
     },
     // 将用户状态转换为可读文本
     getStatusText(status) {

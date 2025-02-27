@@ -1,7 +1,9 @@
 <template>
   <div class="container">
     <el-card class="home-card" shadow="hover">
-      <h1>管理员主页</h1>
+      <div class="header-wrapper">
+        <h1>管理员主页</h1>
+      </div>
       <el-space direction="vertical" size="large" class="button-group">
         <el-button type="primary" size="large" @click="goToUserManage">用户管理</el-button>
         <el-button type="success" size="large" @click="goToMerchantManage">商家管理</el-button>

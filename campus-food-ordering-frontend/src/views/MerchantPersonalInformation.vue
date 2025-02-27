@@ -1,6 +1,7 @@
 <template>
   <div class="container">
     <div class="page-wrapper">
+      <el-button type="text" icon="el-icon-back" @click="goBack">返回</el-button>
       <h2>商家信息</h2>
       <!-- 日销售额显示 -->
       <div class="daily-sales">
@@ -142,7 +143,9 @@ export default {
         this.message = '获取订单失败，请重试。';
       }
     },
-
+    goBack() {
+      this.$router.go(-1);
+    },
     // 计算今日销售额
     calculateDailySales() {
       const today = new Date().toLocaleDateString(); // 获取今天的日期 (格式化为 yyyy/mm/dd)

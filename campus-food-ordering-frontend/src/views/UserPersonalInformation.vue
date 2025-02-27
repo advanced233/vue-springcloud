@@ -1,6 +1,7 @@
 <template>
   <div class="container">
     <div class="page-wrapper">
+      <el-button type="text" icon="el-icon-back" @click="goBack">返回</el-button>
       <h2>个人信息</h2>
       <el-form :model="form" label-width="100px">
         <!-- 头像 -->
@@ -140,6 +141,9 @@ export default {
             console.error(error);
             this.message = '更新个人信息失败';
           });
+    },
+    goBack() {
+      this.$router.go(-1);
     },
     // 添加新地址
     addAddress() {
