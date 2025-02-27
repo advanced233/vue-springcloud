@@ -16,7 +16,9 @@ import UserOrderList from "../views/UserOrderList.vue";
 import MerchantOrderManage from "../views/MerchantOrderManage.vue";
 import UserPersonalInformation from "../views/UserPersonalInformation.vue";
 import AdminRegister from "../views/AdminRegister.vue";
-import AdminLogin from "../views/AdminLogin.vue"; // 商家注册页面
+import AdminLogin from "../views/AdminLogin.vue";
+import AdminHomePage from "../views/AdminHomePage.vue";
+import AdminUserManage from "../views/AdminUserManage.vue"; // 商家注册页面
 
 const routes = [
     {
@@ -89,6 +91,16 @@ const routes = [
         name: 'AdminLogin',
         component: AdminLogin
     },
+    {
+        path: '/admin/homepage',
+        name: 'AdminHomePage',
+        component: AdminHomePage
+    },
+    {
+        path: '/admin/usermanage',
+        name: 'AdminUserManage',
+        component: AdminUserManage
+    }
 ];
 
 const router = createRouter({

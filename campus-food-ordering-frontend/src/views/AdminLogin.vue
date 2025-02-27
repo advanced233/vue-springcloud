@@ -45,7 +45,7 @@ export default {
           // 登录成功：保存管理员ID，并跳转到管理员首页或仪表盘页面
           localStorage.setItem('adminId', adminId);
           this.message = message;
-          this.$router.push({ path: '/admin/dashboard', query: { adminId } });
+          this.$router.push({ path: '/admin/homepage', query: { adminId } });
         } else {
           // 登录失败，提示错误信息
           this.message = message;
