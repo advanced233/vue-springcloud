@@ -24,6 +24,9 @@
             <el-button type="warning" icon="el-icon-tickets" @click="goToOrderManage">
               订单管理
             </el-button>
+            <el-button type="primary" @click="goToPersonalInfo" icon="el-icon-user">
+              个人信息
+            </el-button>
           </div>
         </div>
       </template>
@@ -330,6 +333,9 @@ export default {
     // 跳转到订单管理页面
     goToOrderManage() {
       this.$router.push('/merchant/ordermanage')
+    },
+    goToPersonalInfo() {
+      this.$router.push({ path: '/merchant/personalinfo' });
     }
   }
 }

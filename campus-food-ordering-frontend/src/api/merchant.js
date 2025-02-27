@@ -29,7 +29,7 @@ export function loginMerchant(account, password) {
 }
 
 // 更新店铺信息
-export function updateMerchant(merchant) {
+export function updateMerchantInfo(merchant) {
     return axios.put(`${BASE_URL}/merchant/update`, merchant);
 }
 
