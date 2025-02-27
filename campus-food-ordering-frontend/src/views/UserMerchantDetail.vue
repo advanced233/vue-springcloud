@@ -3,10 +3,20 @@
     <div class="page-wrapper">
       <h2>商家餐品列表</h2>
 
+      <!-- 搜索框 -->
+      <div class="search-wrapper">
+        <el-input
+            v-model="searchQuery"
+            placeholder="搜索菜品"
+            @keyup.enter="searchDishes"
+            style="width: 300px; margin-bottom: 20px;"
+        />
+        <el-button type="primary" @click="searchDishes">搜索</el-button>
+      </div>
+
       <!-- 菜品卡片区 -->
       <div class="dishes-wrapper">
         <div class="dish-card" v-for="dish in dishes" :key="dish.id">
-          <!-- 使用 el-image 显示图片 -->
           <div class="dish-image">
             <el-image
                 v-if="dish.image"
@@ -22,7 +32,6 @@
             <p>{{ dish.description }}</p>
             <p class="price">价格: {{ dish.price }} 元</p>
 
-            <!-- 加减控制区（只增加 size="small" 让按钮更小） -->
             <div class="cart-controls">
               <el-button type="danger" size="small" @click="removeFromCart(dish)">-</el-button>
               <span>{{ getQuantity(dish.id) }}</span>
@@ -32,14 +41,12 @@
         </div>
       </div>
 
-      <!-- 购物车概要 -->
       <div class="cart-summary">
         <p>总价: {{ totalPrice }} 元</p>
         <el-button type="primary" @click="goToCheckout">结算</el-button>
         <el-button type="primary" @click="viewCart">查看购物车</el-button>
       </div>
 
-      <!-- 错误或提示信息 -->
       <p v-if="message" class="message">{{ message }}</p>
     </div>
   </div>
@@ -51,15 +58,15 @@ import { getDishesByMerchantId } from '../api/merchant';
 export default {
   data() {
     return {
-      dishes: [],    // 商家的所有菜品
-      cart: [],      // 购物车：数组中每项包含 { dish, quantity }
-      message: ''    // 提示信息
+      dishes: [],           // 商家的所有菜品
+      cart: [],             // 购物车
+      searchQuery: '',      // 搜索框内容
+      message: ''           // 提示信息
     };
   },
   computed: {
-    // 计算购物车总价（保留两位小数）
+    // 计算购物车总价
     totalPrice() {
-
       const sum = this.cart.reduce((acc, item) => {
         return acc + (item.dish.price * item.quantity);
       }, 0);
@@ -67,7 +74,7 @@ export default {
     }
   },
   created() {
-    // 从 URL 中获取 merchantId
+    // 从 URL 获取商家ID
     const merchantId = this.$route.query.merchantId;
     if (!merchantId) {
       this.message = '无效的商家ID';
@@ -75,14 +82,14 @@ export default {
     }
     this.fetchDishes(merchantId);
 
-    // 如果 localStorage 中已有购物车数据，则加载它
+    // 从 localStorage 获取购物车数据
     const storedCart = localStorage.getItem('cart');
     if (storedCart) {
       this.cart = JSON.parse(storedCart);
     }
   },
   methods: {
-    // 调用后端接口获取菜品列表
+    // 获取所有菜品
     async fetchDishes(merchantId) {
       try {
         const response = await getDishesByMerchantId(merchantId);
@@ -92,7 +99,20 @@ export default {
         this.message = '获取菜品列表失败，请重试。';
       }
     },
-    // 加入购物车：若存在则数量+1，否则添加新项，同时更新 localStorage
+    // 搜索菜品
+    searchDishes() {
+      const query = this.searchQuery.trim().toLowerCase();
+      if (!query) {
+        // 如果搜索框为空，显示所有菜品
+        this.fetchDishes(this.$route.query.merchantId);
+      } else {
+        // 如果有搜索条件，过滤菜品列表
+        this.dishes = this.dishes.filter(dish =>
+            dish.name.toLowerCase().includes(query) || dish.description.toLowerCase().includes(query)
+        );
+      }
+    },
+    // 加入购物车
     addToCart(dish) {
       const existingItem = this.cart.find(item => item.dish.id.toString() === dish.id.toString());
       if (existingItem) {
@@ -102,7 +122,7 @@ export default {
       }
       localStorage.setItem('cart', JSON.stringify(this.cart));
     },
-    // 从购物车中减少菜品数量，数量为0时移除该项，同时更新 localStorage
+    // 从购物车中减少菜品数量
     removeFromCart(dish) {
       const existingItem = this.cart.find(item => item.dish.id.toString() === dish.id.toString());
       if (existingItem) {
@@ -113,16 +133,16 @@ export default {
       }
       localStorage.setItem('cart', JSON.stringify(this.cart));
     },
-    // 返回购物车中某个菜品的数量，若不存在返回 0
+    // 获取菜品数量
     getQuantity(dishId) {
       const item = this.cart.find(item => item.dish.id.toString() === dishId.toString());
       return item ? item.quantity : 0;
     },
-    // 跳转到结算页面，同时传递 merchantId
+    // 结算跳转
     goToCheckout() {
       this.$router.push({ path: '/user/checkout', query: { merchantId: this.$route.query.merchantId } });
     },
-    // 查看购物车内容：弹出一个对话框显示已加入的菜品及数量
+    // 查看购物车
     viewCart() {
       if (this.cart.length === 0) {
         alert('购物车为空');
@@ -276,5 +296,20 @@ h2 {
   margin-top: 15px;
   font-size: 16px;
   color: #ff4d4f;
+}
+
+/* 搜索框和按钮样式 */
+.search-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.search-wrapper el-input {
+  margin-right: 10px;
+}
+
+.search-wrapper el-button {
+  margin-left: 10px;
 }
 </style>
