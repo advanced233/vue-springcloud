@@ -4,9 +4,14 @@
       <template #header>
         <div class="header-wrapper">
           <h2>商家列表</h2>
-          <el-button type="primary" @click="goToOrderList" icon="el-icon-tickets">
-            订单列表
-          </el-button>
+          <div class="header-buttons">
+            <el-button type="primary" @click="goToOrderList" icon="el-icon-tickets">
+              订单列表
+            </el-button>
+            <el-button type="primary" @click="goToPersonalInfo" icon="el-icon-user">
+              个人信息
+            </el-button>
+          </div>
         </div>
       </template>
 
@@ -60,6 +65,9 @@ export default {
     },
     goToOrderList() {
       this.$router.push({ path: '/user/orderlist' });
+    },
+    goToPersonalInfo() {
+      this.$router.push({ path: '/user/personalinfo' });
     }
   }
 };
@@ -85,6 +93,11 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
 }
 
 .merchant-item {

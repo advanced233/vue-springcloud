@@ -1,6 +1,10 @@
 package cn.edu.jlu.user.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+
 public class LoginResponse {
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long userId;   // 用户ID，可为null
     private String message;  // 提示消息，如"用户不存在"、"密码错误"、"登录成功..."
 

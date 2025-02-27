@@ -22,3 +22,21 @@ export function loginUser(username, password) {
         params: { username, password }
     });
 }
+
+/**
+ * 获取用户个人信息（包括地址）
+ * @param {Number} userId
+ */
+export function getUserPersonalInfo(userId) {
+    return axios.get(`${BASE_URL}/user/personal-info`, {
+        params: { userId }
+    });
+}
+
+/**
+ * 更新用户个人信息（包括地址）
+ * @param {Object} personalInfo 用户个人信息 DTO 对象
+ */
+export function updateUserPersonalInfo(personalInfo) {
+    return axios.put(`${BASE_URL}/user/personal-info`, personalInfo);
+}
