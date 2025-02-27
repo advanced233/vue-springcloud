@@ -41,7 +41,7 @@ export default {
       try {
         const response = await loginUser(this.username, this.password);
         const { userId, message } = response.data;
-        console.log(userId);
+        console.log(response);
         localStorage.setItem('userId', userId);
         this.message = message;
         this.$router.push({ path: '/user/homepage', query: { userId }});

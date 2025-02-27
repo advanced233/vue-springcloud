@@ -2,30 +2,39 @@
   <div class="container">
     <div class="page-wrapper">
       <h2>个人信息</h2>
-      <el-form :model="form" label-width="100px" ref="formRef">
-        <!-- 头像区域 -->
+      <el-form :model="form" label-width="100px">
+        <!-- 头像 -->
         <el-form-item label="头像">
           <div class="avatar-container">
             <el-input v-model="form.avatar" placeholder="请输入头像URL" />
             <img v-if="form.avatar" :src="form.avatar" alt="头像" class="avatar-preview" />
           </div>
         </el-form-item>
+
         <!-- 用户ID（只读） -->
         <el-form-item label="用户ID">
           <el-input v-model="form.id" disabled />
         </el-form-item>
+
         <!-- 昵称 -->
         <el-form-item label="昵称">
           <el-input v-model="form.username" />
         </el-form-item>
-        <!-- 密码 -->
+
+        <!-- 密码（只显示空，若用户想修改可输入新密码） -->
         <el-form-item label="密码">
-          <el-input type="password" v-model="form.password" placeholder="若不修改，请留空" />
+          <el-input
+              type="password"
+              v-model="form.password"
+              placeholder="若不修改，请留空"
+          />
         </el-form-item>
+
         <!-- 手机号 -->
         <el-form-item label="手机号">
           <el-input v-model="form.phone" />
         </el-form-item>
+
         <!-- 地址列表 -->
         <el-form-item label="地址">
           <div v-for="(addr, index) in form.addresses" :key="index" class="address-item">
@@ -47,12 +56,26 @@
             >
               默认地址
             </el-checkbox>
-            <el-button type="danger" icon="el-icon-delete" circle @click="removeAddress(index)"></el-button>
+            <!-- 改用小按钮，带文字“删除” -->
+            <el-button
+                type="danger"
+                icon="el-icon-delete"
+                size="small"
+                @click="removeAddress(index)"
+            >
+              删除
+            </el-button>
           </div>
-          <el-button type="primary" icon="el-icon-plus" @click="addAddress" style="margin-top: 10px;">
+          <el-button
+              type="primary"
+              icon="el-icon-plus"
+              @click="addAddress"
+              style="margin-top: 10px;"
+          >
             添加地址
           </el-button>
         </el-form-item>
+
         <!-- 保存按钮 -->
         <el-form-item>
           <el-button type="primary" @click="savePersonalInfo">保存</el-button>
@@ -94,20 +117,10 @@ export default {
     fetchPersonalInfo(userId) {
       getUserPersonalInfo(userId)
           .then(response => {
-            let data = response.data;
-            // 如果返回的是空字符串或非对象，使用默认对象
-            if (typeof data !== 'object' || data === null || data === '') {
-              data = {
-                id: userId,
-                username: '',
-                password: '',
-                phone: '',
-                avatar: '',
-                addresses: []
-              };
-            }
-            // 确保 addresses 为数组
-            if (!data.addresses || !Array.isArray(data.addresses)) {
+            let data = response.data || {};
+            // 不显示加密后的密码
+            data.password = '';
+            if (!data.addresses) {
               data.addresses = [];
             }
             this.form = data;
@@ -128,7 +141,7 @@ export default {
             this.message = '更新个人信息失败';
           });
     },
-    // 添加新的地址
+    // 添加新地址
     addAddress() {
       this.form.addresses.push({
         address: '',
@@ -151,6 +164,7 @@ export default {
   align-items: center;
   min-height: 100vh;
   background-color: #f4f4f9;
+  padding: 20px;
 }
 
 .page-wrapper {
