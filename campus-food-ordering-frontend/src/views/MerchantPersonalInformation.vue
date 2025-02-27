@@ -26,6 +26,19 @@
           <el-input v-model="form.name" />
         </el-form-item>
 
+        <!-- 商家类型（下拉选择） -->
+        <el-form-item label="商家类型">
+          <el-select v-model="form.type" placeholder="请选择商家类型">
+            <!-- 这里从 data() 中的 typeOptions 数组生成选项 -->
+            <el-option
+                v-for="option in typeOptions"
+                :key="option"
+                :label="option"
+                :value="option"
+            />
+          </el-select>
+        </el-form-item>
+
         <!-- 密码（只显示空，若商家想修改可输入新密码） -->
         <el-form-item label="密码">
           <el-input
@@ -59,19 +72,23 @@ export default {
         account: '',
         password: '',
         name: '',
-        logo: ''
+        logo: '',
+        type: ''        // 新增：商家类型
       },
       message: '',
-      orders: [],           // 当前商家的订单列表（附加了订单项数据）
-      dailySales: 0,        // 今日销售额
-      merchantId: localStorage.getItem('merchantId') // 登录后存入 localStorage 的商家ID
+      orders: [],
+      dailySales: 0,
+      merchantId: localStorage.getItem('merchantId'),
+
+      // 新增：可选的商家类型列表
+      typeOptions: ['家常菜', '快餐', '茶饮', '甜点', '小吃']
     };
   },
   created() {
     const merchantId = localStorage.getItem('merchantId');
     if (merchantId) {
       this.fetchMerchantInfo(merchantId);
-      this.fetchOrders(); // 获取订单
+      this.fetchOrders();
     } else {
       this.message = '商家未登录';
     }
@@ -82,6 +99,7 @@ export default {
       getMerchant(merchantId)
           .then(response => {
             let data = response.data || {};
+            // 后端返回的密码置空，避免显示明文
             data.password = '';
             this.form = data;
           })
