@@ -4,7 +4,13 @@
       <h2>订单结算</h2>
       <p v-if="totalPrice > 0">您总计消费：{{ totalPrice }} 元</p>
       <p v-else>您的购物车为空</p>
-      <button v-if="totalPrice > 0" @click="confirmPayment">确认支付</button>
+
+      <!-- 显示倒计时 -->
+      <p v-if="countdown > 0">倒计时: {{ formatTime(countdown) }}</p>
+      <p v-else v-if="!isOrderConfirmed">创建订单失败，您未及时确认支付。</p>
+
+      <button v-if="totalPrice > 0 && countdown > 0" @click="confirmPayment">确认支付</button>
+
       <p v-if="message" class="message">{{ message }}</p>
     </div>
   </div>
@@ -16,61 +22,90 @@ import { createOrder } from '../api/order';
 export default {
   data() {
     return {
-      totalPrice: 0,
-      orderItems: [],
-      message: ''
+      totalPrice: 0,         // 总价
+      orderItems: [],        // 订单项
+      message: '',           // 错误或成功信息
+      countdown: 10,        // 倒计时：600秒，即10分钟
+      isOrderConfirmed: false, // 标识是否已确认支付
+      countdownTimer: null   // 用于存储 setInterval 定时器
     };
   },
   created() {
-    // 从 localStorage 读取用户购物车（前面页面在加入购物车时应将 cart 存入 localStorage）
+    // 从 localStorage 获取购物车数据并计算总价
     const cartData = localStorage.getItem('cart');
     if (cartData) {
       const cart = JSON.parse(cartData);
-      // 计算总价，并转换购物车数据为订单项（orderItems）
       let sum = 0;
       this.orderItems = cart.map(item => {
         sum += item.dish.price * item.quantity;
         return {
-          dishId: item.dish.id,  // 确保这里 dish.id 为字符串（如果后端需要字符串，已在后端处理 Long）
+          dishId: item.dish.id,
           quantity: item.quantity,
           price: item.dish.price
         };
       });
-      // 保留两位小数
       this.totalPrice = sum.toFixed(2);
+    }
+
+    // 启动倒计时
+    this.startCountdown();
+  },
+  beforeDestroy() {
+    // 清理定时器
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
     }
   },
   methods: {
+    // 格式化倒计时（转换为分钟:秒）
+    formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${minutes}:${secs < 10 ? '0' + secs : secs}`;
+    },
+
+    // 启动倒计时
+    startCountdown() {
+      this.countdownTimer = setInterval(() => {
+        if (this.countdown > 0) {
+          this.countdown--;
+        } else {
+          // 倒计时结束，未支付则显示失败信息
+          clearInterval(this.countdownTimer);
+          if (!this.isOrderConfirmed) {
+            this.message = '创建订单失败，您未及时确认支付。';
+          }
+        }
+      }, 1000);
+    },
+
+    // 确认支付
     async confirmPayment() {
-      // 获取用户 id（登录后存入 localStorage）
       const userId = localStorage.getItem('userId');
       if (!userId) {
         this.message = '请先登录';
         return;
       }
-      // 获取 merchantId 可从路由 query 中获取
+
       const merchantId = this.$route.query.merchantId;
       if (!merchantId) {
         this.message = '无效的商家ID';
         return;
       }
-      // 构造订单对象，注意订单项不能为空
+
       const order = {
-        userId: userId,         // 用户 ID
-        merchantId: merchantId, // 商家 ID
-        // totalAmount: Number(this.totalPrice), // 总金额
-        // status: 0,              // 订单状态：0 待处理
+        userId: userId,
+        merchantId: merchantId,
         orderItems: this.orderItems
       };
 
-      // 以 JSON 格式打印订单信息
       console.log("订单请求数据:", JSON.stringify(order, null, 2));
 
       try {
         const response = await createOrder(order);
-        this.message = response.data; // 后端返回 "订单创建成功" 或其他提示
-        // 支付成功后，可清空购物车数据
-        localStorage.removeItem('cart');
+        this.message = response.data;  // 后端返回 "订单创建成功" 或其他提示
+        this.isOrderConfirmed = true;  // 标记订单已确认支付
+        localStorage.removeItem('cart'); // 支付成功后清空购物车
       } catch (error) {
         console.error("订单创建失败:", error);
         this.message = '下单失败，请重试';
@@ -123,5 +158,10 @@ button:hover {
   margin-top: 15px;
   font-size: 16px;
   color: #ff4d4f;
+}
+
+p {
+  font-size: 16px;
+  color: #333;
 }
 </style>
