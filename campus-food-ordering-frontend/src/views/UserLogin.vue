@@ -41,10 +41,18 @@ export default {
       try {
         const response = await loginUser(this.username, this.password);
         const { userId, message } = response.data;
-        console.log(response);
-        localStorage.setItem('userId', userId);
-        this.message = message;
-        this.$router.push({ path: '/user/homepage', query: { userId }});
+
+        // 判断后端返回的 userId 是否为 null
+        if (userId) {
+          // 登录成功
+          localStorage.setItem('userId', userId);
+          this.message = message; // 例如“登录成功，欢迎 xxx”
+          this.$router.push({ path: '/user/homepage', query: { userId }});
+        } else {
+          // 登录失败，userId=null，提示错误
+          this.message = message; // 例如“用户不存在”或“密码错误”
+          ElMessage.error(message);
+        }
       } catch (error) {
         console.error(error);
         this.message = '登录失败，请重试。';
