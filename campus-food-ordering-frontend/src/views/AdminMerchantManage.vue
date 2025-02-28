@@ -22,8 +22,9 @@
               <el-descriptions-item label="商户名称">
                 {{ merchant.name }}
               </el-descriptions-item>
-              <el-descriptions-item label="电话">
-                {{ merchant.phone }}
+              <!-- 显示销售额 -->
+              <el-descriptions-item label="销售额">
+                ¥{{ merchant.sales ? merchant.sales.toFixed(2) : '0.00' }}
               </el-descriptions-item>
               <el-descriptions-item label="状态">
                 <el-tag :type="statusTagType(merchant.status)">
@@ -32,7 +33,7 @@
               </el-descriptions-item>
             </el-descriptions>
 
-            <!-- 操作按钮：如果商户状态不是0（已封禁），则显示“封禁”按钮，否则显示“解禁”按钮 -->
+            <!-- 操作按钮 -->
             <div class="merchant-actions">
               <el-button
                   v-if="merchant.status !== 0"
@@ -63,6 +64,7 @@
 
 <script>
 import { getAllMerchants, updateMerchantStatus } from '../api/merchant';
+import { getOrdersByMerchant } from '../api/order';
 
 export default {
   name: 'AdminMerchantManage',
@@ -76,12 +78,31 @@ export default {
     this.fetchMerchants();
   },
   methods: {
-    // 获取所有商户信息
+    // 获取所有商户信息，并计算每个商户的销售额（仅累计状态为已完成的订单），最后按销售额降序排序
     async fetchMerchants() {
       try {
         const response = await getAllMerchants();
-        // 后端返回的所有商户列表
         this.merchants = response.data || [];
+
+        // 对每个商户查询其所有订单并累计销售额（仅统计状态为2的订单）
+        for (let merchant of this.merchants) {
+          try {
+            const ordersResponse = await getOrdersByMerchant(merchant.id);
+            const orders = ordersResponse.data || [];
+            let sales = 0;
+            orders.forEach(order => {
+              if (order.status === 2) {
+                sales += order.totalAmount;
+              }
+            });
+            merchant.sales = sales;
+          } catch (error) {
+            console.error(`获取商户 ${merchant.id} 的订单失败：`, error);
+            merchant.sales = 0;
+          }
+        }
+        // 按销售额从大到小排序
+        this.merchants.sort((a, b) => b.sales - a.sales);
       } catch (error) {
         console.error(error);
         this.message = '获取商户列表失败，请稍后重试。';
@@ -92,7 +113,6 @@ export default {
     },
     // 将商户状态转换为可读文本
     getStatusText(status) {
-      // 约定：0 => 已封禁, 1 => 正常, 其他 => 未知
       if (status === 0) return '已封禁';
       if (status === 1) return '正常';
       return '未知状态';
@@ -110,9 +130,7 @@ export default {
       }
       try {
         const response = await updateMerchantStatus(merchant.id, 0);
-        // 后端可能返回一条提示信息，如“封禁成功”
         this.message = response.data;
-        // 更新本地数据
         merchant.status = 0;
       } catch (error) {
         console.error(error);
@@ -127,7 +145,6 @@ export default {
       try {
         const response = await updateMerchantStatus(merchant.id, 1);
         this.message = response.data;
-        // 更新本地数据
         merchant.status = 1;
       } catch (error) {
         console.error(error);
