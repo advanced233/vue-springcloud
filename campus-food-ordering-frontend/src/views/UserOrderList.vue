@@ -16,7 +16,6 @@
         </el-select>
       </div>
 
-
       <ul class="order-list">
         <li
             v-for="order in filteredOrders"
@@ -62,7 +61,6 @@
           </span>
         </p>
         <p><strong>下单日期:</strong> {{ formatDate(selectedOrder.createTime) }}</p>
-        <!-- 新增订单金额显示 -->
         <p><strong>订单金额:</strong> {{ selectedOrder.totalAmount }}</p>
         <div v-if="selectedOrder.orderItems && selectedOrder.orderItems.length">
           <h4>购买菜品：</h4>
@@ -76,6 +74,17 @@
         <el-button type="danger" v-if="selectedOrder.status === 0" @click="cancelOrder(selectedOrder)">
           取消订单
         </el-button>
+        <!-- 当订单状态为已完成时，显示评论功能 -->
+        <div v-if="selectedOrder.status === 2" class="comment-section">
+          <h4>订单评论</h4>
+          <el-input
+              type="textarea"
+              v-model="comment"
+              placeholder="请输入您的评论"
+              rows="3"
+          ></el-input>
+          <el-button type="primary" @click="submitComment(selectedOrder)">提交评论</el-button>
+        </div>
         <el-button type="primary" @click="closeModal">关闭</el-button>
       </div>
     </div>
@@ -83,7 +92,7 @@
 </template>
 
 <script>
-import { getOrdersByUser, getOrderItems, updateOrderStatus } from '../api/order';
+import { getOrdersByUser, getOrderItems, updateOrderStatus, updateComment } from '../api/order';
 import { getMerchant, getDishById } from '../api/merchant';
 
 export default {
@@ -93,7 +102,8 @@ export default {
       message: '',          // 错误或提示信息
       selectedOrder: null,  // 当前选中查看详情的订单
       userId: localStorage.getItem('userId'),
-      selectedStatus: ""    // 筛选条件，空字符串表示显示所有状态
+      selectedStatus: "",   // 筛选条件，空字符串表示显示所有状态
+      comment: ''           // 用于存储用户输入的评论
     };
   },
   created() {
@@ -158,12 +168,16 @@ export default {
     goBack() {
       this.$router.go(-1);
     },
-    // 显示订单详情
+    // 显示订单详情，并初始化评论内容（如果已存在）
     showOrderDetails(order) {
       this.selectedOrder = order;
+      if (order.status === 2) {
+        this.comment = order.comment || '';
+      }
     },
     closeModal() {
       this.selectedOrder = null;
+      this.comment = '';
     },
     // 将订单状态数字转换为文本
     getStatusText(status) {
@@ -175,7 +189,7 @@ export default {
       };
       return statusMap[status] || "未知状态";
     },
-    // 根据订单状态返回对应的 CSS 类
+    // 根据订单状态返回对应的 Element UI 标签类型
     statusTagType(status) {
       const tagTypeMap = {
         0: "warning", // 待处理 - 橙色
@@ -185,6 +199,7 @@ export default {
       };
       return tagTypeMap[status] || "info";
     },
+    // 根据订单状态返回对应的 CSS 类
     statusClass(status) {
       switch (status) {
         case 0:
@@ -208,7 +223,7 @@ export default {
       if (confirm('确定取消该订单吗？')) {
         try {
           const response = await updateOrderStatus(order.id, 3); // 3 表示“已取消”
-          this.message = response.data;
+          this.$message.success(response.data);
           // 更新本地订单状态
           order.status = 3;
           if (this.selectedOrder && this.selectedOrder.id === order.id) {
@@ -216,8 +231,24 @@ export default {
           }
         } catch (error) {
           console.error(error);
-          this.message = '取消订单失败，请重试。';
+          this.$message.error('取消订单失败，请重试。');
         }
+      }
+    },
+    // 提交订单评论，并给出反馈
+    async submitComment(order) {
+      if (!this.comment) {
+        this.$message.error('评论内容不能为空');
+        return;
+      }
+      try {
+        const response = await updateComment(order.id, this.comment);
+        this.$message.success(response.data);
+        // 更新本地订单的评论
+        order.comment = this.comment;
+      } catch (error) {
+        console.error(error);
+        this.$message.error('评论失败，请重试。');
       }
     }
   }
@@ -335,5 +366,13 @@ h2 {
 }
 .status-cancelled {
   color: red;
+}
+
+/* 评论区样式 */
+.comment-section {
+  margin-top: 20px;
+}
+.comment-section h4 {
+  margin-bottom: 10px;
 }
 </style>

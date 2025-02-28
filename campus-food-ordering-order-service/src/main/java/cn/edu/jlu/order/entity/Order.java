@@ -25,4 +25,6 @@ public class Order {
 
     @TableField(exist = false)
     private List<OrderItem> orderItems;
+
+    private String comment;
 }
