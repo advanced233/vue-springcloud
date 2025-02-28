@@ -27,4 +27,5 @@ public class Order {
     private List<OrderItem> orderItems;
 
     private String comment;
+    private String address;
 }

@@ -52,17 +52,40 @@
     <div v-if="selectedOrder" class="modal">
       <div class="modal-content">
         <h3>订单详情</h3>
-        <p><strong>订单号:</strong> {{ selectedOrder.id }}</p>
-        <p><strong>商家:</strong> {{ selectedOrder.merchantName }}</p>
-        <p>
-          <strong>状态:</strong>
-          <span :class="statusClass(selectedOrder.status)">
-            {{ getStatusText(selectedOrder.status) }}
-          </span>
-        </p>
-        <p><strong>下单日期:</strong> {{ formatDate(selectedOrder.createTime) }}</p>
-        <p><strong>订单金额:</strong> {{ selectedOrder.totalAmount }}</p>
-        <div v-if="selectedOrder.orderItems && selectedOrder.orderItems.length">
+        <!-- 使用 el-descriptions 展示订单详细信息，与商户端风格统一 -->
+        <el-descriptions :column="1" border>
+          <el-descriptions-item label="订单号">
+            {{ selectedOrder.id }}
+          </el-descriptions-item>
+          <el-descriptions-item label="商家">
+            {{ selectedOrder.merchantName }}
+          </el-descriptions-item>
+          <el-descriptions-item label="当前状态">
+            <el-tag :type="statusTagType(selectedOrder.status)">
+              {{ getStatusText(selectedOrder.status) }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="下单日期">
+            {{ formatDate(selectedOrder.createTime) }}
+          </el-descriptions-item>
+          <!-- 新增：显示收货地址 -->
+          <el-descriptions-item label="收货地址">
+            {{ selectedOrder.address ? selectedOrder.address : '暂无地址' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="订单金额">
+            ¥{{ selectedOrder.totalAmount }}
+          </el-descriptions-item>
+          <!-- 新增：显示订单评价（若无则显示“暂无评价”） -->
+          <el-descriptions-item label="订单评价">
+            {{ selectedOrder.comment ? selectedOrder.comment : '暂无评价' }}
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <!-- 购买菜品列表 -->
+        <div
+            v-if="selectedOrder.orderItems && selectedOrder.orderItems.length"
+            style="margin-top: 15px;"
+        >
           <h4>购买菜品：</h4>
           <ul>
             <li v-for="(item, index) in selectedOrder.orderItems" :key="index">
@@ -70,12 +93,19 @@
             </li>
           </ul>
         </div>
+
         <!-- 仅在订单状态为待处理时显示取消订单按钮 -->
-        <el-button type="danger" v-if="selectedOrder.status === 0" @click="cancelOrder(selectedOrder)">
+        <el-button
+            type="danger"
+            v-if="selectedOrder.status === 0"
+            @click="cancelOrder(selectedOrder)"
+            style="margin-top: 15px;"
+        >
           取消订单
         </el-button>
+
         <!-- 当订单状态为已完成时，显示评论功能 -->
-        <div v-if="selectedOrder.status === 2" class="comment-section">
+        <div v-if="selectedOrder.status === 2" class="comment-section" style="margin-top: 15px;">
           <h4>订单评论</h4>
           <el-input
               type="textarea"
@@ -83,9 +113,15 @@
               placeholder="请输入您的评论"
               rows="3"
           ></el-input>
-          <el-button type="primary" @click="submitComment(selectedOrder)">提交评论</el-button>
+          <el-button type="primary" @click="submitComment(selectedOrder)" style="margin-top: 10px;">
+            提交评论
+          </el-button>
         </div>
-        <el-button type="primary" @click="closeModal">关闭</el-button>
+
+        <!-- 关闭按钮 -->
+        <el-button type="primary" @click="closeModal" style="margin-top: 15px;">
+          关闭
+        </el-button>
       </div>
     </div>
   </div>
@@ -123,6 +159,9 @@ export default {
     }
   },
   methods: {
+    /**
+     * 获取当前用户的订单
+     */
     async fetchOrders() {
       try {
         // 获取用户订单
@@ -133,14 +172,16 @@ export default {
 
         // 为每个订单补充商家名称、订单项和订单总金额
         for (let order of orders) {
+          // 获取商家名称
           try {
             const merchantRes = await getMerchant(order.merchantId);
             order.merchantName = merchantRes.data.name;
           } catch (e) {
             console.error('获取商家信息失败：', e);
-            order.merchantName = order.merchantId;
+            order.merchantName = `商家ID：${order.merchantId}`;
           }
 
+          // 获取订单项
           try {
             const itemsRes = await getOrderItems(order.id);
             order.orderItems = itemsRes.data;
@@ -165,21 +206,36 @@ export default {
         this.message = '获取订单失败，请重试。';
       }
     },
+
+    /**
+     * 返回上一页
+     */
     goBack() {
       this.$router.go(-1);
     },
-    // 显示订单详情，并初始化评论内容（如果已存在）
+
+    /**
+     * 显示订单详情，并初始化评论内容（如果已存在）
+     */
     showOrderDetails(order) {
       this.selectedOrder = order;
+      // 如果订单已完成，则初始化评论
       if (order.status === 2) {
         this.comment = order.comment || '';
       }
     },
+
+    /**
+     * 关闭订单详情模态框
+     */
     closeModal() {
       this.selectedOrder = null;
       this.comment = '';
     },
-    // 将订单状态数字转换为文本
+
+    /**
+     * 将订单状态数字转换为文本
+     */
     getStatusText(status) {
       const statusMap = {
         0: "待处理",
@@ -189,7 +245,10 @@ export default {
       };
       return statusMap[status] || "未知状态";
     },
-    // 根据订单状态返回对应的 Element UI 标签类型
+
+    /**
+     * 根据订单状态返回对应的 Element UI 标签类型
+     */
     statusTagType(status) {
       const tagTypeMap = {
         0: "warning", // 待处理 - 橙色
@@ -199,26 +258,17 @@ export default {
       };
       return tagTypeMap[status] || "info";
     },
-    // 根据订单状态返回对应的 CSS 类
-    statusClass(status) {
-      switch (status) {
-        case 0:
-          return 'status-pending';
-        case 1:
-          return 'status-accepted';
-        case 2:
-          return 'status-completed';
-        case 3:
-          return 'status-cancelled';
-        default:
-          return '';
-      }
-    },
-    // 格式化日期字符串
+
+    /**
+     * 格式化日期字符串
+     */
     formatDate(time) {
       return new Date(time).toLocaleString();
     },
-    // 取消订单（仅限待处理订单）
+
+    /**
+     * 取消订单（仅限待处理订单）
+     */
     async cancelOrder(order) {
       if (confirm('确定取消该订单吗？')) {
         try {
@@ -235,7 +285,10 @@ export default {
         }
       }
     },
-    // 提交订单评论，并给出反馈
+
+    /**
+     * 提交订单评论
+     */
     async submitComment(order) {
       if (!this.comment) {
         this.$message.error('评论内容不能为空');
@@ -288,10 +341,6 @@ h2 {
   font-size: 16px;
   color: #333;
 }
-.filter-container select {
-  padding: 6px 8px;
-  font-size: 16px;
-}
 
 /* 订单列表样式 */
 .order-list {
@@ -301,71 +350,42 @@ h2 {
 }
 
 .order-item {
-  padding: 15px;
-  border-bottom: 1px solid #ddd;
+  margin-bottom: 15px;
   cursor: pointer;
-  transition: background-color 0.2s;
 }
 
-.order-item:hover {
-  background-color: #f0f0f0;
+.order-summary {
+  padding: 10px;
 }
 
-.order-summary p {
-  margin: 5px 0;
-}
-
+/* 提示信息 */
 .message {
   margin-top: 15px;
   font-size: 16px;
   color: #ff4d4f;
 }
 
-/* 模态框样式 */
+/* 模态框背景 */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
+/* 模态框内容区域 */
 .modal-content {
-  background: #fff;
+  background: white;
   padding: 20px;
+  width: 60%;
+  max-width: 800px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  width: 400px;
-  text-align: left;
-}
-
-.modal-content h3 {
-  margin-top: 0;
-}
-
-.modal-content button {
-  margin-top: 15px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-/* 订单状态颜色 */
-.status-pending {
-  color: blue;
-}
-.status-accepted {
-  color: #bdbd00;
-}
-.status-completed {
-  color: green;
-}
-.status-cancelled {
-  color: red;
 }
 
 /* 评论区样式 */

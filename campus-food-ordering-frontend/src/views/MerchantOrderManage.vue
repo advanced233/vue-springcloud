@@ -75,7 +75,11 @@
           <el-descriptions-item label="下单日期">
             {{ formatDate(selectedOrder.createTime) }}
           </el-descriptions-item>
-          <!-- 新增：显示订单评价，若无评价则提示“暂无评价” -->
+          <!-- 新增：显示收货地址 -->
+          <el-descriptions-item label="收货地址">
+            {{ selectedOrder.address ? selectedOrder.address : '暂无地址' }}
+          </el-descriptions-item>
+          <!-- 显示订单评价，若无评价则提示“暂无评价” -->
           <el-descriptions-item label="订单评价">
             {{ selectedOrder.comment ? selectedOrder.comment : '暂无评价' }}
           </el-descriptions-item>
