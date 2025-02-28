@@ -106,6 +106,14 @@ export default {
         this.message = response.data;  // 后端返回 "订单创建成功" 或其他提示
         this.isOrderConfirmed = true;  // 标记订单已确认支付
         localStorage.removeItem('cart'); // 支付成功后清空购物车
+
+        // 确认支付后延时显示成功消息，并跳转回上一页面
+        setTimeout(() => {
+          this.message = '支付成功！';
+          setTimeout(() => {
+            this.$router.go(-1);  // 这一行会使页面返回到上一页
+          }, 2000);  // 2秒后跳转
+        }, 500);  // 0.5秒后显示“支付成功”消息
       } catch (error) {
         console.error("订单创建失败:", error);
         this.message = '下单失败，请重试';
