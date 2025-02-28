@@ -4,6 +4,11 @@
       <el-button type="text" icon="el-icon-back" @click="goBack">返回</el-button>
       <h2>商户管理</h2>
 
+      <!-- 显示所有商户的销售总额 -->
+      <div class="total-sales">
+        <h3>总销售额: ¥{{ totalSales.toFixed(2) }}</h3>
+      </div>
+
       <!-- 商户列表 -->
       <ul class="merchant-list">
         <li
@@ -70,8 +75,9 @@ export default {
   name: 'AdminMerchantManage',
   data() {
     return {
-      merchants: [], // 所有商户信息
-      message: ''    // 提示信息
+      merchants: [],    // 所有商户信息
+      message: '',      // 提示信息
+      totalSales: 0,    // 所有商户的销售总额
     };
   },
   created() {
@@ -83,6 +89,8 @@ export default {
       try {
         const response = await getAllMerchants();
         this.merchants = response.data || [];
+
+        let totalSales = 0;  // 初始化总销售额
 
         // 对每个商户查询其所有订单并累计销售额（仅统计状态为2的订单）
         for (let merchant of this.merchants) {
@@ -96,11 +104,18 @@ export default {
               }
             });
             merchant.sales = sales;
+
+            // 累加到总销售额
+            totalSales += sales;
           } catch (error) {
             console.error(`获取商户 ${merchant.id} 的订单失败：`, error);
             merchant.sales = 0;
           }
         }
+
+        // 更新总销售额
+        this.totalSales = totalSales;
+
         // 按销售额从大到小排序
         this.merchants.sort((a, b) => b.sales - a.sales);
       } catch (error) {
@@ -175,6 +190,15 @@ export default {
 h2 {
   margin-bottom: 20px;
   color: #333;
+}
+
+/* 显示总销售额 */
+.total-sales {
+  margin-bottom: 20px;
+}
+
+.el-button {
+  margin-bottom: 15px;
 }
 
 /* 商户列表 */
