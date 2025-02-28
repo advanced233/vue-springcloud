@@ -75,6 +75,10 @@
           <el-descriptions-item label="下单日期">
             {{ formatDate(selectedOrder.createTime) }}
           </el-descriptions-item>
+          <!-- 新增：显示订单评价，若无评价则提示“暂无评价” -->
+          <el-descriptions-item label="订单评价">
+            {{ selectedOrder.comment ? selectedOrder.comment : '暂无评价' }}
+          </el-descriptions-item>
         </el-descriptions>
 
         <div
@@ -93,7 +97,6 @@
         <div class="update-status" style="margin-top: 15px;">
           <el-form label-position="left" label-width="120px" inline>
             <el-form-item label="更新订单状态">
-              <!-- 使用状态文本而非数字 -->
               <el-select v-model="editedStatus" placeholder="请选择订单状态" style="width: 150px;">
                 <el-option label="待处理" value="0"></el-option>
                 <el-option label="已接单" value="1"></el-option>
@@ -107,7 +110,6 @@
           </el-form>
         </div>
 
-        <!-- 更新状态后刷新页面 -->
         <el-button type="primary" @click="closeModal" style="margin-top: 15px;">关闭</el-button>
       </div>
     </div>

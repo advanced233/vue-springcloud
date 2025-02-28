@@ -54,4 +54,13 @@ public class OrderController {
     public List<OrderItem> getOrderItems(@PathVariable("orderId") Long orderId) {
         return orderService.getOrderItemsByOrderId(orderId);
     }
+
+    /**
+     * 用户评论订单接口：PUT /order/{orderId}/comment
+     */
+    @PutMapping("/{orderId}/comment")
+    public String updateComment(@PathVariable("orderId") Long orderId,
+                                @RequestParam String comment) {
+        return orderService.updateComment(orderId, comment);
+    }
 }

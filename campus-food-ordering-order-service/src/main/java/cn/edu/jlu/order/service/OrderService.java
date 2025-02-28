@@ -81,4 +81,17 @@ public class OrderService {
     public List<OrderItem> getOrderItemsByOrderId(Long orderId) {
         return orderItemMapper.selectByOrderId(orderId);
     }
+
+    /**
+     * 用户评论订单
+     */
+    public String updateComment(Long orderId, String comment) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null) {
+            return "订单不存在";
+        }
+        order.setComment(comment);
+        int result = orderMapper.updateById(order);
+        return result > 0 ? "评论成功" : "评论失败";
+    }
 }

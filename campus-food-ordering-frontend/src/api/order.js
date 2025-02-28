@@ -26,3 +26,8 @@ export function getOrdersByMerchant(merchantId) {
 export function getOrderItems(orderId) {
     return axios.get(`${BASE_URL}/order/${orderId}/items`);
 }
+
+// 用户评论订单
+export function updateComment(orderId, comment) {
+    return axios.put(`${BASE_URL}/order/${orderId}/comment`, null, { params: { comment } });
+}
